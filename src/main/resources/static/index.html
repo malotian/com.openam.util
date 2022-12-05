@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>JavaScript example</title>
+		<meta charSet="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<style media="only screen">
+            html, body {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                box-sizing: border-box;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            html {
+                position: absolute;
+                top: 0;
+                left: 0;
+                padding: 0;
+                overflow: auto;
+            }
+
+            body {
+                padding: 1rem;
+                overflow: auto;
+            }
+            
+			/* enable basic browser text selection in grid cells */
+			div.ag-root .ag-cell-focus {
+			    -webkit-user-select: text;
+			    -moz-user-select: text;
+			    -ms-user-select: text;
+			    user-select: text;
+			}
+        </style>
+	</head>
+	<body>
+		<div id="myGrid" class="ag-theme-alpine" style="height: 100%">
+		</div>
+		<script>var __basePath = './';</script>
+		<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@28.2.1/dist/ag-grid-community.min.js">
+		</script>
+		<script src="main.js">
+		</script>
+	</body>
+</html>
