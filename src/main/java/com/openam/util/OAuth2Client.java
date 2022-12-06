@@ -30,14 +30,14 @@ public class OAuth2Client extends Entity {
 			}
 
 		} else {
-			if (OpenAM.getResourcesForInternalMFAPolicies().contains(oauth2Client)) {
+			if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(oauth2Client)) {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_MFA);
-			} else if (OpenAM.getResourcesForInternalCERTPolicies().contains(oauth2Client)) {
+			} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(oauth2Client)) {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_CERT);
 			} else {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH_LEVEL, "PWD");
 			}
-			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getResourcesForExternalMFAPolices().contains(oauth2Client) ? "MFA" : "PWD");
+			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(oauth2Client) ? "MFA" : "PWD");
 		}
 
 	}

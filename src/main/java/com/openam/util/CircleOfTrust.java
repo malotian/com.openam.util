@@ -87,14 +87,14 @@ public class CircleOfTrust extends Entity {
 					sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, idp.getAttribute(INTERNAL_AUTH_LEVEL));
 					sp.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, idp.getAttribute(EXTERNAL_AUTH_LEVEL));
 				} else {
-					if (OpenAM.getResourcesForInternalMFAPolicies().contains(sp)) {
+					if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp)) {
 						sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_MFA);
-					} else if (OpenAM.getResourcesForInternalCERTPolicies().contains(sp)) {
+					} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp)) {
 						sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_CERT);
 					} else {
 						sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, "PWD");
 					}
-					sp.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
+					sp.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
 				}
 			});
 		}

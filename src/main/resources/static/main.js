@@ -23,8 +23,7 @@ var gridOptions = {
 		filter: true,
 		sortable: true,
 		floatingFilter: true,
-	},
-	enableRangeSelection: true
+	}
 };
 
 document.addEventListener('DOMContentLoaded', () => {

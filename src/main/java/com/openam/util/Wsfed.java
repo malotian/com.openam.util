@@ -36,14 +36,14 @@ public class Wsfed extends Entity {
 			wsfed.addAttribute(Entity.REMOTE);
 		}
 
-		if (OpenAM.getResourcesForInternalMFAPolicies().contains(wsfed)) {
+		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(wsfed)) {
 			wsfed.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_MFA);
-		} else if (OpenAM.getResourcesForInternalCERTPolicies().contains(wsfed)) {
+		} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(wsfed)) {
 			wsfed.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_CERT);
 		} else {
 			wsfed.addAttribute(Entity.INTERNAL_AUTH_LEVEL, "PWD");
 		}
-		wsfed.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getResourcesForExternalMFAPolices().contains(wsfed) ? "MFA" : "PWD");
+		wsfed.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(wsfed) ? "MFA" : "PWD");
 
 	}
 
