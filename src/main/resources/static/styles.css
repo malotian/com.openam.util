@@ -18,3 +18,8 @@ div.ag-root .ag-cell-focus {
 	-ms-user-select: text;
 	user-select: text;
 }
+
+.tabulator-counter {
+    color: #555;
+    margin: 3px 8px 8px 8px;
+} 

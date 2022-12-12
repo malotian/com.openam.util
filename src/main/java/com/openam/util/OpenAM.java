@@ -12,6 +12,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,8 @@ public class OpenAM {
 
 	private final HttpClient httpClient = HttpClientBuilder.create().build();
 	private final ObjectMapper mapper = new ObjectMapper();
+	
+	private static final Logger logger = LoggerFactory.getLogger(OpenAM.class);
 
 	HttpClient getHttpclient() {
 		return httpClient;
@@ -58,37 +62,47 @@ public class OpenAM {
 
 		do {
 			final var fetchSaml2EntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/entityproviders/saml2?_queryFilter=true");
-			final var jsonSaml2Entities = mapper.readTree(getHttpclient().execute(fetchSaml2EntitiesRequest).getEntity().getContent());
+			final var fetchSaml2EntitiesResponse = getHttpclient().execute(fetchSaml2EntitiesRequest);
+			final var jsonSaml2Entities = mapper.readTree(fetchSaml2EntitiesResponse.getEntity().getContent());
 			mapper.writeValue(Paths.get("jsonSaml2Entities.json").toFile(), jsonSaml2Entities);
-			retry = (jsonSaml2Entities == null);
+			logger.debug("fetchSaml2EntitiesResponse: {}", fetchSaml2EntitiesResponse.getStatusLine().getStatusCode());
+			retry = (fetchSaml2EntitiesResponse.getStatusLine().getStatusCode() != 200);
 		} while (retry == true);
 
 		do {
 			final var fetchWsEntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/entityproviders/ws?_queryFilter=true");
-			final var jsonWsEntities = mapper.readTree(getHttpclient().execute(fetchWsEntitiesRequest).getEntity().getContent());
+			final var fetchWsEntitiesResponse = getHttpclient().execute(fetchWsEntitiesRequest);
+			final var jsonWsEntities = mapper.readTree(fetchWsEntitiesResponse.getEntity().getContent());
 			mapper.writeValue(Paths.get("jsonWsEntities.json").toFile(), jsonWsEntities);
-			retry = (jsonWsEntities == null);
+			logger.debug("fetchWsEntitiesResponse: {}", fetchWsEntitiesResponse.getStatusLine().getStatusCode());
+			retry = (fetchWsEntitiesResponse.getStatusLine().getStatusCode() != 200);
 		} while (retry == true);
 
 		do {
 			final var fetchOAuth2EntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/agents/OAuth2Client?_queryFilter=true");
-			final var jsonOAuth2Entities = mapper.readTree(getHttpclient().execute(fetchOAuth2EntitiesRequest).getEntity().getContent());
+			final var fetchOAuth2EntitiesResponse = getHttpclient().execute(fetchOAuth2EntitiesRequest);
+			final var jsonOAuth2Entities = mapper.readTree(fetchOAuth2EntitiesResponse.getEntity().getContent());
 			mapper.writeValue(Paths.get("jsonOAuth2Entities.json").toFile(), jsonOAuth2Entities);
-			retry = (jsonOAuth2Entities == null);
+			logger.debug("fetchOAuth2EntitiesResponse: {}", fetchOAuth2EntitiesResponse.getStatusLine().getStatusCode());
+			retry = (fetchOAuth2EntitiesResponse.getStatusLine().getStatusCode() != 200);
 		} while (retry == true);
 
 		do {
 			final var fetchPoliciesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/policies?_queryFilter=true");
-			final var jsonPolicies = mapper.readTree(getHttpclient().execute(fetchPoliciesRequest).getEntity().getContent());
+			final var fetchPoliciesResponse = getHttpclient().execute(fetchPoliciesRequest);
+			final var jsonPolicies = mapper.readTree(fetchPoliciesResponse.getEntity().getContent());
 			mapper.writeValue(Paths.get("jsonPolicies.json").toFile(), jsonPolicies);
-			retry = (jsonPolicies == null);
+			logger.debug("fetchPoliciesResponse: {}", fetchPoliciesResponse.getStatusLine().getStatusCode());
+			retry = (fetchPoliciesResponse.getStatusLine().getStatusCode() != 200);
 		} while (retry == true);
 
 		do {
 			final var fetchCircleOfTrustRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/circlesoftrust?_queryFilter=true");
-			final var jsonCircleOfTrust = mapper.readTree(getHttpclient().execute(fetchCircleOfTrustRequest).getEntity().getContent());
+			final var fetchCircleOfTrustResponse = getHttpclient().execute(fetchCircleOfTrustRequest);
+			final var jsonCircleOfTrust = mapper.readTree(fetchCircleOfTrustResponse.getEntity().getContent());
 			mapper.writeValue(Paths.get("jsonCircleOfTrust.json").toFile(), jsonCircleOfTrust);
-			retry = (jsonCircleOfTrust == null);
+			logger.debug("fetchCircleOfTrustResponse: {}", fetchCircleOfTrustResponse.getStatusLine().getStatusCode());
+			retry = (fetchCircleOfTrustResponse.getStatusLine().getStatusCode() != 200);
 		} while (retry == true);
 	}
 

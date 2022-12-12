@@ -18,9 +18,20 @@ var table = new Tabulator("#example-table", {
 	columnDefaults: {
 		headerFilter: "input",
 		resizable: true,
-	}
+	},
+    footerElement: '<span class="tabulator-counter float-left">'+
+        'Showing <span id="search_count"></span> results out of <span id="total_count"></span> '+
+        '</span>',	
 });
 
+
+table.on("dataLoaded", function(data){
+    $("#total_count").text(data.length);
+});
+
+table.on("dataFiltered", function(filters, rows){
+    $("#search_count").text(rows.length);
+});
 
 //trigger AJAX load on "Load Data via AJAX" button click
 document.getElementById("file-load-trigger").addEventListener("click", function() {
