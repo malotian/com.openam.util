@@ -53,29 +53,47 @@ public class OpenAM {
 		loginRequest.addHeader("X-OpenAM-Password", Configuration.getInstance().getOpenamPassword());
 		getHttpclient().execute(loginRequest);
 		final var mapper = new ObjectMapper();
-		
-		final var fetchSaml2EntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/entityproviders/saml2?_queryFilter=true");
-		final var jsonSaml2Entities = mapper.readTree(getHttpclient().execute(fetchSaml2EntitiesRequest).getEntity().getContent());
-		mapper.writeValue(Paths.get("jsonSaml2Entities.json").toFile(), jsonSaml2Entities);
 
-		final var fetchWsEntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/entityproviders/ws?_queryFilter=true");
-		final var jsonWsEntities = mapper.readTree(getHttpclient().execute(fetchWsEntitiesRequest).getEntity().getContent());
-		mapper.writeValue(Paths.get("jsonWsEntities.json").toFile(), jsonWsEntities);
+		boolean retry = false;
 
-		final var fetchOAuth2EntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/agents/OAuth2Client?_queryFilter=true");
-		final var jsonOAuth2Entities = mapper.readTree(getHttpclient().execute(fetchOAuth2EntitiesRequest).getEntity().getContent());
-		mapper.writeValue(Paths.get("jsonOAuth2Entities.json").toFile(), jsonOAuth2Entities);
+		do {
+			final var fetchSaml2EntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/entityproviders/saml2?_queryFilter=true");
+			final var jsonSaml2Entities = mapper.readTree(getHttpclient().execute(fetchSaml2EntitiesRequest).getEntity().getContent());
+			mapper.writeValue(Paths.get("jsonSaml2Entities.json").toFile(), jsonSaml2Entities);
+			retry = (jsonSaml2Entities == null);
+		} while (retry == true);
 
-		final var fetchPoliciesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/policies?_queryFilter=true");
-		final var jsonPolicies = mapper.readTree(getHttpclient().execute(fetchPoliciesRequest).getEntity().getContent());
-		mapper.writeValue(Paths.get("jsonPolicies.json").toFile(), jsonPolicies);
+		do {
+			final var fetchWsEntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/entityproviders/ws?_queryFilter=true");
+			final var jsonWsEntities = mapper.readTree(getHttpclient().execute(fetchWsEntitiesRequest).getEntity().getContent());
+			mapper.writeValue(Paths.get("jsonWsEntities.json").toFile(), jsonWsEntities);
+			retry = (jsonWsEntities == null);
+		} while (retry == true);
 
-		final var fetchCircleOfTrustRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/circlesoftrust?_queryFilter=true");
-		final var jsonCircleOfTrust = mapper.readTree(getHttpclient().execute(fetchCircleOfTrustRequest).getEntity().getContent());
-		mapper.writeValue(Paths.get("jsonCircleOfTrust.json").toFile(), jsonCircleOfTrust);
+		do {
+			final var fetchOAuth2EntitiesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/agents/OAuth2Client?_queryFilter=true");
+			final var jsonOAuth2Entities = mapper.readTree(getHttpclient().execute(fetchOAuth2EntitiesRequest).getEntity().getContent());
+			mapper.writeValue(Paths.get("jsonOAuth2Entities.json").toFile(), jsonOAuth2Entities);
+			retry = (jsonOAuth2Entities == null);
+		} while (retry == true);
+
+		do {
+			final var fetchPoliciesRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/policies?_queryFilter=true");
+			final var jsonPolicies = mapper.readTree(getHttpclient().execute(fetchPoliciesRequest).getEntity().getContent());
+			mapper.writeValue(Paths.get("jsonPolicies.json").toFile(), jsonPolicies);
+			retry = (jsonPolicies == null);
+		} while (retry == true);
+
+		do {
+			final var fetchCircleOfTrustRequest = new HttpGet(Configuration.getInstance().getOpenamUrl() + "/json/realm-config/federation/circlesoftrust?_queryFilter=true");
+			final var jsonCircleOfTrust = mapper.readTree(getHttpclient().execute(fetchCircleOfTrustRequest).getEntity().getContent());
+			mapper.writeValue(Paths.get("jsonCircleOfTrust.json").toFile(), jsonCircleOfTrust);
+			retry = (jsonCircleOfTrust == null);
+		} while (retry == true);
 	}
 
 	void process() throws ClientProtocolException, IOException {
+
 		final var jsonPolicies = mapper.readValue(Paths.get("jsonPolicies.json").toFile(), JsonNode.class);
 		Policy.process(jsonPolicies);
 

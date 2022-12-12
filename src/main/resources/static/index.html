@@ -1,47 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>JavaScript example</title>
-		<meta charSet="UTF-8"/>
-		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<style media="only screen">
-            html, body {
-                height: 100%;
-                width: 100%;
-                margin: 0;
-                box-sizing: border-box;
-                -webkit-overflow-scrolling: touch;
-            }
 
-            html {
-                position: absolute;
-                top: 0;
-                left: 0;
-                padding: 0;
-                overflow: auto;
-            }
+<head>
+	<title>com.openam.util</title>
+	<meta charSet="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://unpkg.com/tabulator-tables@5.4.3/dist/css/tabulator.min.css" rel="stylesheet">
+ <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.3/dist/js/tabulator.min.js"></script>
+</head>
 
-            body {
-                padding: 1rem;
-                overflow: auto;
-            }
-            
-			/* enable basic browser text selection in grid cells */
-			div.ag-root .ag-cell-focus {
-			    -webkit-user-select: text;
-			    -moz-user-select: text;
-			    -ms-user-select: text;
-			    user-select: text;
-			}
-        </style>
-	</head>
-	<body>
-		<div id="myGrid" class="ag-theme-alpine" style="height: 100%">
-		</div>
-		<script>var __basePath = './';</script>
-		<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@28.2.1/dist/ag-grid-community.min.js">
-		</script>
-		<script src="main.js">
-		</script>
-	</body>
+<body>
+	<div>
+		<button id="file-load-trigger">Open File</button>
+	</div>
+
+	<div id="example-table"></div>
+	<script src="main.js">
+	</script>
+</body>
+
 </html>

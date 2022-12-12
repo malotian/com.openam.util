@@ -6,8 +6,8 @@ public class Entity extends EntityID {
 
 	public static String EXTERNAL_AUTH_LEVEL = "EXTERNAL_AUTH_LEVEL";
 	public static String INTERNAL_AUTH_LEVEL = "INTERNAL_AUTH_LEVEL";
-	public static String IDENTITY_PROVIDER = "IDENTITY_PROVIDER";
-	public static String SERVICE_PROVIDER = "SERVICE_PROVIDER";
+	public static String IDENTITY_PROVIDER = "IDP";
+	public static String SERVICE_PROVIDER = "SP";
 	public static String AUTH_LEVEL_CERT = "CERT";
 	public static String AUTH_LEVEL_MFA = "MFA";
 	
