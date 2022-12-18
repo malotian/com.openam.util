@@ -37,13 +37,13 @@ public class Wsfed extends Entity {
 		}
 
 		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(wsfed)) {
-			wsfed.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_MFA);
+			wsfed.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
 		} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(wsfed)) {
-			wsfed.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_CERT);
+			wsfed.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
 		} else {
-			wsfed.addAttribute(Entity.INTERNAL_AUTH_LEVEL, "PWD");
+			wsfed.addAttribute(Entity.INTERNAL_AUTH, "PWD");
 		}
-		wsfed.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(wsfed) ? "MFA" : "PWD");
+		wsfed.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(wsfed) ? "MFA" : "PWD");
 
 	}
 
@@ -69,18 +69,18 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.IDENTITY_PROVIDER);
+		return this.hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !hasAttribute(Entity.IDENTITY_PROVIDER);
+		return !this.hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotSP() {
-		return !hasAttribute(Entity.SERVICE_PROVIDER);
+		return !this.hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SERVICE_PROVIDER);
+		return this.hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 }

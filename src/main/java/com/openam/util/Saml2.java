@@ -36,8 +36,8 @@ public class Saml2 extends Entity {
 				final var matcher = Saml2.patternCertMfa.matcher(entityConfig);
 
 				if (matcher.find()) {
-					saml2.addAttribute(Entity.INTERNAL_AUTH_LEVEL, matcher.group(1));
-					saml2.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, "N/A");
+					saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
+					saml2.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
 				}
 			}
 
@@ -75,19 +75,19 @@ public class Saml2 extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.IDENTITY_PROVIDER);
+		return this.hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !hasAttribute(Entity.IDENTITY_PROVIDER);
+		return !this.hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotSP() {
-		return !hasAttribute(Entity.SERVICE_PROVIDER);
+		return !this.hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SERVICE_PROVIDER);
+		return this.hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 
 }

@@ -51,7 +51,7 @@ public class Policy extends Entity {
 	}
 
 	Set<EntityID> getResources() {
-		return resources;
+		return this.resources;
 	}
 
 	void setResources(final Set<EntityID> resources) {

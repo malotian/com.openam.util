@@ -61,9 +61,10 @@ public class CircleOfTrust extends Entity {
 			CircleOfTrust.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
 		} else {
 			if (idps.size() > 1) {
-				var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
-				if (!helper.isEmpty())
+				final var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
+				if (!helper.isEmpty()) {
 					idps = helper;
+				}
 
 			}
 
@@ -76,25 +77,25 @@ public class CircleOfTrust extends Entity {
 
 		cot.setSps(sps);
 		cot.setIdps(idps);
-		cot.getSps().forEach(sp -> Entity.get(sp).addAttribute(ASSIGNED_COT, cot.getID()));
+		cot.getSps().forEach(sp -> Entity.get(sp).addAttribute(Entity.COT, cot.getID()));
 		if (cot.hasIdp()) {
-			cot.addAttribute(ASSIGNED_IDENTITY_PROVIDER, cot.getIdp().getID());
-			Entity idp = Entity.get(cot.getIdp());
+			cot.addAttribute(Entity.ASSIGNED_IDP, cot.getIdp().getID());
+			final var idp = Entity.get(cot.getIdp());
 			cot.getSps().forEach(spID -> {
-				Entity sp = Entity.get(spID);
-				sp.addAttribute(ASSIGNED_IDENTITY_PROVIDER, idp.getID());
-				if (idp.hasAttribute(INTERNAL_AUTH_LEVEL)) {
-					sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, idp.getAttribute(INTERNAL_AUTH_LEVEL));
-					sp.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, idp.getAttribute(EXTERNAL_AUTH_LEVEL));
+				final var sp = Entity.get(spID);
+				sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
+				if (idp.hasAttribute(Entity.INTERNAL_AUTH)) {
+					sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
+					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
 				} else {
 					if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp)) {
-						sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_MFA);
+						sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
 					} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp)) {
-						sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, Entity.AUTH_LEVEL_CERT);
+						sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
 					} else {
-						sp.addAttribute(Entity.INTERNAL_AUTH_LEVEL, "PWD");
+						sp.addAttribute(Entity.INTERNAL_AUTH, "PWD");
 					}
-					sp.addAttribute(Entity.EXTERNAL_AUTH_LEVEL, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
+					sp.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
 				}
 			});
 		}
@@ -140,19 +141,19 @@ public class CircleOfTrust extends Entity {
 	}
 
 	EntityID getIdp() {
-		return getIdps().stream().findFirst().get();
+		return this.getIdps().stream().findFirst().get();
 	}
 
 	public Set<EntityID> getIdps() {
-		return idps;
+		return this.idps;
 	}
 
 	public Set<EntityID> getSps() {
-		return sps;
+		return this.sps;
 	}
 
 	boolean hasIdp() {
-		return getIdps().stream().findFirst().isPresent();
+		return this.getIdps().stream().findFirst().isPresent();
 	}
 
 	public void setIdps(final Set<EntityID> idps) {

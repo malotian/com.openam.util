@@ -18,32 +18,65 @@ public class Kontroller {
 	public static String HOSTED_REMOTE = "HOSTED/REMOTE";
 	public static String SP_IDP = "SP/IDP";
 
+	@GetMapping("/openam/json")
+	public ResponseEntity<Set<HashMap>> downloadJson() throws ClientProtocolException, IOException {
+		OpenAM.getInstance().download();
+		OpenAM.getInstance().process();
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Entity.getAllEntities().values().stream().map(v -> {
+			final var copy = new HashMap(v.getAttributes());
+			copy.put("ID", v.getID());
+			copy.put("TYPE", v.getEntityType());
+
+			if (copy.containsKey(Entity.HOSTED)) {
+				copy.put(Kontroller.HOSTED_REMOTE, Entity.HOSTED);
+			} else if (copy.containsKey(Entity.REMOTE)) {
+				copy.put(Kontroller.HOSTED_REMOTE, Entity.REMOTE);
+			} else {
+				copy.put(Kontroller.HOSTED_REMOTE, "N/A");
+			}
+			copy.remove(Entity.HOSTED);
+			copy.remove(Entity.REMOTE);
+
+			if (copy.containsKey(Entity.SERVICE_PROVIDER)) {
+				copy.put(Kontroller.SP_IDP, Entity.SERVICE_PROVIDER);
+			} else if (copy.containsKey(Entity.IDENTITY_PROVIDER)) {
+				copy.put(Kontroller.SP_IDP, Entity.IDENTITY_PROVIDER);
+			} else {
+				copy.put(Kontroller.SP_IDP, "N/A");
+			}
+			copy.remove(Entity.SERVICE_PROVIDER);
+			copy.remove(Entity.IDENTITY_PROVIDER);
+
+			return copy;
+		}).collect(Collectors.toSet()));
+	}
+
 	@GetMapping("/openam/download")
 	public ResponseEntity<Set<HashMap>> downloadJsonFile() throws ClientProtocolException, IOException {
 		OpenAM.getInstance().download();
 		OpenAM.getInstance().process();
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=openam.json").contentType(MediaType.APPLICATION_JSON)
 				.body(Entity.getAllEntities().values().stream().map(v -> {
-					var copy = new HashMap(v.getAttributes());
-					copy.put("id", v.getID());
-					copy.put("type", v.getEntityType());
+					final var copy = new HashMap(v.getAttributes());
+					copy.put("ID", v.getID());
+					copy.put("TYPE", v.getEntityType());
 
 					if (copy.containsKey(Entity.HOSTED)) {
-						copy.put(HOSTED_REMOTE, Entity.HOSTED);
+						copy.put(Kontroller.HOSTED_REMOTE, Entity.HOSTED);
 					} else if (copy.containsKey(Entity.REMOTE)) {
-						copy.put(HOSTED_REMOTE, Entity.REMOTE);
+						copy.put(Kontroller.HOSTED_REMOTE, Entity.REMOTE);
 					} else {
-						copy.put(HOSTED_REMOTE, "N/A");
+						copy.put(Kontroller.HOSTED_REMOTE, "N/A");
 					}
 					copy.remove(Entity.HOSTED);
 					copy.remove(Entity.REMOTE);
 
 					if (copy.containsKey(Entity.SERVICE_PROVIDER)) {
-						copy.put(SP_IDP, Entity.SERVICE_PROVIDER);
+						copy.put(Kontroller.SP_IDP, Entity.SERVICE_PROVIDER);
 					} else if (copy.containsKey(Entity.IDENTITY_PROVIDER)) {
-						copy.put(SP_IDP, Entity.IDENTITY_PROVIDER);
+						copy.put(Kontroller.SP_IDP, Entity.IDENTITY_PROVIDER);
 					} else {
-						copy.put(SP_IDP, "N/A");
+						copy.put(Kontroller.SP_IDP, "N/A");
 					}
 					copy.remove(Entity.SERVICE_PROVIDER);
 					copy.remove(Entity.IDENTITY_PROVIDER);
