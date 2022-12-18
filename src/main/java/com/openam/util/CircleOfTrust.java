@@ -24,7 +24,7 @@ public class CircleOfTrust extends Entity {
 			return;
 		}
 
-		final HashSet<EntityType> typesEncountered = new HashSet();
+		final HashSet<EntityType> typesEncountered = new HashSet<EntityType>();
 
 		final var cot = new CircleOfTrust(id);
 		final var trustedProviders = new HashSet<EntityID>();

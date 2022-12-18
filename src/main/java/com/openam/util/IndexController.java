@@ -7,15 +7,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class IndexController {
 
-	@GetMapping("/info")
-	public String getInfo(Model model) {
-		model.addAttribute("activePage", "info");
-		return "info";
-	}
-
 	@GetMapping("/contact")
-	public String getContact(Model model) {
+	public String getContact(final Model model) {
 		model.addAttribute("activePage", "contact");
 		return "contact";
+	}
+
+	@GetMapping("/info")
+	public String getInfo(final Model model) {
+		model.addAttribute("activePage", "info");
+		return "info";
 	}
 }
