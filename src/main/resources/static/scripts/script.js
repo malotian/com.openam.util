@@ -1,3 +1,4 @@
+//headerFilterFunc: (headerValue, rowValue, rowData, filterParams) => { return RegExp(headerValue, 'i').test(rowValue);}
 var columnDefs = [
 	{ title: "ID", field: "ID", frozen: true },
 	{ title: "TYPE", field: "TYPE", frozen: true },
@@ -5,7 +6,7 @@ var columnDefs = [
 	{ title: "EXTERNAL-AUTH", field: "EXTERNAL-AUTH" },
 	{ title: "ASSIGNED-IDP", field: "ASSIGNED-IDP" },
 	{ title: "SP/IDP", field: "SP/IDP" },
-	{ title: "COT", field: "COT" },
+	{ title: "COT", field: "COT", },
 	{ title: "HOSTED/REMOTE", field: "HOSTED/REMOTE" }
 ];
 
