@@ -22,7 +22,7 @@ public class Policy extends Entity {
 		final var policyname = json.get("_id").asText();
 
 		if (!Policy.patternInternalOnlyPolicies.matcher(policyname).find() && !Policy.patternInternalMFAPolicies.matcher(policyname).find()
-				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find())
+				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find() && !patternInternalCERTPolicies.matcher(policyname).find())
 			return;
 		final var policy = new Policy(policyname);
 		if (!json.has("resources")) {

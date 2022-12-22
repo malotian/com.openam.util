@@ -42,7 +42,6 @@ public class OAuth2Client extends Entity {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, "PWD");
 			}
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(oauth2Client) ? "MFA" : "PWD");
-			logger.debug("id: {}, EXTERNAL_AUTH: {}", id, oauth2Client.getAttribute(EXTERNAL_AUTH));
 		}
 
 	}

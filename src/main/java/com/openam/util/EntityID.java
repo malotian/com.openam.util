@@ -26,7 +26,8 @@ public class EntityID {
 	}
 
 	public static EntityID ParseResourceEntry(final String resource) {
-		final var id = resource.split("|")[0].replace("saml-", "").replace("wsfed-", "").replace("oauth-", "");
+		final var id = resource.split("\\|")[0].replace("saml-", "").replace("wsfed-", "").replace("oauth-", "");
+		logger.debug("id: {}", id);
 		if (resource.startsWith("saml"))
 			return new EntityID(id, EntityType.SAML2);
 		if (resource.startsWith("wsfed"))
