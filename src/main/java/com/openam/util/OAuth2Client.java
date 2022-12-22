@@ -60,7 +60,7 @@ public class OAuth2Client extends Entity {
 	}
 
 	protected OAuth2Client(final String id) {
-		super(id, EntityType.WSFED);
+		super(id, EntityType.OAUTH2);
 	}
 
 }
