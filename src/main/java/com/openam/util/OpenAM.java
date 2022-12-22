@@ -206,7 +206,7 @@ public class OpenAM {
 		Wsfed.process(jsonWsEntities);
 
 		final var jsonOAuth2Entities = this.mapper.readValue(Paths.get("jsonOAuth2Entities.json").toFile(), JsonNode.class);
-		Wsfed.process(jsonOAuth2Entities);
+		OAuth2Client.process(jsonOAuth2Entities);
 
 		final var jsonCircleOfTrust = this.mapper.readValue(Paths.get("jsonCircleOfTrust.json").toFile(), JsonNode.class);
 		CircleOfTrust.process(jsonCircleOfTrust);

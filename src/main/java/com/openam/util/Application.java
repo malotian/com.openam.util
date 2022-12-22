@@ -1,5 +1,7 @@
 package com.openam.util;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class Application implements CommandLineRunner, Runnable {
 	@Autowired
 	Configuration configuration;
 
+	@Autowired
+	Kontroller kontroller;
+
 	@Spec
 	CommandSpec spec;
 
@@ -38,7 +43,11 @@ public class Application implements CommandLineRunner, Runnable {
 	@Override
 	public void run(final String... args) {
 		Configuration.setInstance(this.configuration);
-		// final int exitCode = new CommandLine(this).execute(args);
-		// System.exit(exitCode);
+		try {
+			kontroller.downloadJson();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

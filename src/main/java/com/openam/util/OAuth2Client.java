@@ -5,11 +5,15 @@ import java.util.HashSet;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class OAuth2Client extends Entity {
+
+	private static final Logger logger = LoggerFactory.getLogger(OAuth2Client.class);
 
 	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
@@ -20,7 +24,7 @@ public class OAuth2Client extends Entity {
 			json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
 		}
 
-		if (acrs.isEmpty()) {
+		if (!acrs.isEmpty()) {
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
 			if (acrs.contains("2")) {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
@@ -38,6 +42,7 @@ public class OAuth2Client extends Entity {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, "PWD");
 			}
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(oauth2Client) ? "MFA" : "PWD");
+			logger.debug("id: {}, EXTERNAL_AUTH: {}", id, oauth2Client.getAttribute(EXTERNAL_AUTH));
 		}
 
 	}

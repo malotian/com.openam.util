@@ -20,7 +20,7 @@ public class Kontroller {
 
 	@GetMapping("/openam/json")
 	public ResponseEntity<?> downloadJson() throws ClientProtocolException, IOException {
-		OpenAM.getInstance().download();
+		//OpenAM.getInstance().download();
 		OpenAM.getInstance().process();
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(entitiesTable());
 	}

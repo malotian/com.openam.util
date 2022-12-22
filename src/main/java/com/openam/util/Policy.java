@@ -29,7 +29,7 @@ public class Policy extends Entity {
 			Policy.logger.warn("skipping, resources missing for policy: {} ", json.get("_id").asText());
 			return;
 		}
-
+		Policy.logger.warn("processing, policy: {} ", json.get("_id").asText());
 		json.get("resources").forEach(resource -> {
 			policy.getResources().add(EntityID.ParseResourceEntry(resource.asText()));
 		});
