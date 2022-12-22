@@ -39,26 +39,26 @@ public class Entity extends EntityID {
 	}
 
 	public void addAttribute(final String name) {
-		this.attributes.put(name, "true");
+		attributes.put(name, "true");
 
 	}
 
 	public void addAttribute(final String name, final String value) {
-		this.attributes.put(name, value);
+		attributes.put(name, value);
 
 	}
 
 	public String getAttribute(final String attribute) {
-		return this.attributes.get(attribute);
+		return attributes.get(attribute);
 
 	}
 
 	public HashMap<String, String> getAttributes() {
-		return this.attributes;
+		return attributes;
 	}
 
 	public boolean hasAttribute(final String attribute) {
-		return this.attributes.containsKey(attribute);
+		return attributes.containsKey(attribute);
 
 	}
 }

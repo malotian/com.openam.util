@@ -20,29 +20,23 @@ public class Wsfed extends Entity {
 
 		final var wsfed = new Wsfed(id);
 
-		if (entityConfig.contains("IDPSSOConfig")) {
+		if (entityConfig.contains("IDPSSOConfig"))
 			wsfed.addAttribute(Entity.IDENTITY_PROVIDER);
-		}
 
-		if (entityConfig.contains("SPSSOConfig")) {
+		if (entityConfig.contains("SPSSOConfig"))
 			wsfed.addAttribute(Entity.SERVICE_PROVIDER);
-		}
 
-		if (entityConfig.contains("hosted=\"true\"")) {
+		if (entityConfig.contains("hosted=\"true\""))
 			wsfed.addAttribute(Entity.HOSTED);
-		}
-
-		else if (entityConfig.contains("hosted=\"false\"")) {
+		else if (entityConfig.contains("hosted=\"false\""))
 			wsfed.addAttribute(Entity.REMOTE);
-		}
 
-		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(wsfed)) {
+		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(wsfed))
 			wsfed.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-		} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(wsfed)) {
+		else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(wsfed))
 			wsfed.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-		} else {
+		else
 			wsfed.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-		}
 		wsfed.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(wsfed) ? "MFA" : "PWD");
 
 	}
@@ -69,18 +63,18 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isIDP() {
-		return this.hasAttribute(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !this.hasAttribute(Entity.IDENTITY_PROVIDER);
+		return !hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotSP() {
-		return !this.hasAttribute(Entity.SERVICE_PROVIDER);
+		return !hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 
 	public boolean isSP() {
-		return this.hasAttribute(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 }

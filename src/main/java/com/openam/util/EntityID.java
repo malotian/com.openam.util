@@ -27,7 +27,7 @@ public class EntityID {
 
 	public static EntityID ParseResourceEntry(final String resource) {
 		final var id = resource.split("\\|")[0].replace("saml-", "").replace("wsfed-", "").replace("oauth-", "");
-		logger.debug("id: {}", id);
+		EntityID.logger.debug("id: {}", id);
 		if (resource.startsWith("saml"))
 			return new EntityID(id, EntityType.SAML2);
 		if (resource.startsWith("wsfed"))
@@ -51,20 +51,20 @@ public class EntityID {
 		if (this == o)
 			return true;
 		final var that = (EntityID) o;
-		return this.entityType.equals(that.entityType) && this.id.equals(that.id);
+		return entityType.equals(that.entityType) && id.equals(that.id);
 	}
 
 	public EntityType getEntityType() {
-		return this.entityType;
+		return entityType;
 	}
 
 	public String getID() {
-		return this.id;
+		return id;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.entityType, this.id);
+		return Objects.hash(entityType, id);
 	}
 
 	public String json() {
@@ -78,6 +78,6 @@ public class EntityID {
 
 	@Override
 	public String toString() {
-		return this.json();
+		return json();
 	}
 }

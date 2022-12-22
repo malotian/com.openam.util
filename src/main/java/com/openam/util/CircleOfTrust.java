@@ -24,7 +24,7 @@ public class CircleOfTrust extends Entity {
 			return;
 		}
 
-		final HashSet<EntityType> typesEncountered = new HashSet<EntityType>();
+		final var typesEncountered = new HashSet<>();
 
 		final var cot = new CircleOfTrust(id);
 		final var trustedProviders = new HashSet<EntityID>();
@@ -38,9 +38,8 @@ public class CircleOfTrust extends Entity {
 			trustedProviders.add(eid);
 		});
 
-		if (typesEncountered.size() > 1) {
+		if (typesEncountered.size() > 1)
 			CircleOfTrust.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
-		}
 
 		final var sps = new HashSet<>(trustedProviders);
 		// collect elements that are only idps
@@ -57,23 +56,21 @@ public class CircleOfTrust extends Entity {
 		cot.setSps(sps);
 
 		// we will remove first one only from lits of sps
-		if (idps.isEmpty()) {
+		if (idps.isEmpty())
 			CircleOfTrust.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
-		} else {
+		else {
 			if (idps.size() > 1) {
 				final var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
-				if (!helper.isEmpty()) {
+				if (!helper.isEmpty())
 					idps = helper;
-				}
 
 			}
 
 			sps.remove(idps.stream().findFirst().get());
 		}
 
-		if (idps.size() > 1) {
+		if (idps.size() > 1)
 			CircleOfTrust.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
-		}
 
 		cot.setSps(sps);
 		cot.setIdps(idps);
@@ -88,13 +85,12 @@ public class CircleOfTrust extends Entity {
 					sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
 					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
 				} else {
-					if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp)) {
+					if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp))
 						sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-					} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp)) {
+					else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp))
 						sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-					} else {
+					else
 						sp.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-					}
 					sp.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
 				}
 			});
@@ -110,7 +106,7 @@ public class CircleOfTrust extends Entity {
 				final var se = (Saml2) entity;
 				if (se.isIDP())
 					return strict ? se.isNotSP() : true;
-			} else if ((entity.getClass() == Wsfed.class)) {
+			} else if (entity.getClass() == Wsfed.class) {
 				final var we = (Wsfed) entity;
 				if (we.isIDP())
 					return strict ? we.isNotSP() : true;
@@ -141,19 +137,19 @@ public class CircleOfTrust extends Entity {
 	}
 
 	EntityID getIdp() {
-		return this.getIdps().stream().findFirst().get();
+		return getIdps().stream().findFirst().get();
 	}
 
 	public Set<EntityID> getIdps() {
-		return this.idps;
+		return idps;
 	}
 
 	public Set<EntityID> getSps() {
-		return this.sps;
+		return sps;
 	}
 
 	boolean hasIdp() {
-		return this.getIdps().stream().findFirst().isPresent();
+		return getIdps().stream().findFirst().isPresent();
 	}
 
 	public void setIdps(final Set<EntityID> idps) {

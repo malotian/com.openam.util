@@ -42,19 +42,17 @@ public class Saml2 extends Entity {
 			}
 
 		}
-		if (metaData.contains("SPSSODescriptor")) {
+		if (metaData.contains("SPSSODescriptor"))
 			saml2.addAttribute(Entity.SERVICE_PROVIDER);
-		}
 
 		if (!json.has("entityConfig"))
 			return;
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
-		if (entityConfig.contains("hosted=\"true\"")) {
+		if (entityConfig.contains("hosted=\"true\""))
 			saml2.addAttribute(Entity.HOSTED);
-		} else if (entityConfig.contains("hosted=\"false\"")) {
+		else if (entityConfig.contains("hosted=\"false\""))
 			saml2.addAttribute(Entity.REMOTE);
-		}
 
 	}
 
@@ -75,19 +73,19 @@ public class Saml2 extends Entity {
 	}
 
 	public boolean isIDP() {
-		return this.hasAttribute(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !this.hasAttribute(Entity.IDENTITY_PROVIDER);
+		return !hasAttribute(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotSP() {
-		return !this.hasAttribute(Entity.SERVICE_PROVIDER);
+		return !hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 
 	public boolean isSP() {
-		return this.hasAttribute(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SERVICE_PROVIDER);
 	}
 
 }
