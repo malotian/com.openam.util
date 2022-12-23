@@ -83,16 +83,18 @@ public class CircleOfTrust extends Entity {
 				sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
 				if (idp.hasAttribute(Entity.INTERNAL_AUTH)) {
 					sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
+				} else if (idp.hasAttribute(Entity.INTERNAL_AUTH)) {
 					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
-				} else {
-					if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp))
-						sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-					else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp))
-						sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-					else
-						sp.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-					sp.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
 				}
+		
+				if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp))
+					sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
+				else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp))
+					sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
+				else
+					sp.addAttribute(Entity.INTERNAL_AUTH, "PWD");
+				sp.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
+
 			});
 		}
 	}
