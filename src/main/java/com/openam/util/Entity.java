@@ -2,8 +2,6 @@ package com.openam.util;
 
 import java.util.HashMap;
 
-import org.thymeleaf.util.StringUtils;
-
 public class Entity extends EntityID {
 
 	public static String EXTERNAL_AUTH = "EXTERNAL-AUTH";
@@ -52,7 +50,7 @@ public class Entity extends EntityID {
 	}
 
 	public void addRemarks(final String value) {
-		String helper = value;
+		var helper = value;
 		if (attributes.containsKey(Entity.REMARKS))
 			helper = attributes.get(Entity.REMARKS) + "#" + value;
 		attributes.put(Entity.REMARKS, helper);

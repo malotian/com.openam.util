@@ -82,14 +82,14 @@ public class CircleOfTrust extends Entity {
 			cot.getSps().forEach(spID -> {
 				final var sp = Entity.get(spID);
 				sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
-				if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || sp.getAttribute(Entity.INTERNAL_AUTH).equals("PWD"))) {
+				if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
 					sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-					String remarks = MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID());
+					final var remarks = MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID());
 					sp.addRemarks(remarks);
 				}
-				if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || sp.getAttribute(Entity.EXTERNAL_AUTH).equals("PWD"))) {
+				if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
 					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
-					String remarks = MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID());
+					final var remarks = MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID());
 					sp.addRemarks(remarks);
 				}
 			});
