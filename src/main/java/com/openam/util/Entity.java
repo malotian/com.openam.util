@@ -20,6 +20,10 @@ public class Entity extends EntityID {
 
 	private static HashMap<EntityID, Entity> entities = new HashMap<>();
 
+	public static String HOSTED_REMOTE = "HOSTED-REMOTE";
+
+	public static String SP_IDP = "SP-IDP";
+
 	public static Entity get(final EntityID eid) {
 		return Entity.entities.get(eid);
 	}
@@ -37,11 +41,6 @@ public class Entity extends EntityID {
 	public Entity(final String id, final EntityType type) {
 		super(id, type);
 		Entity.entities.put(this, this);
-	}
-
-	public void addAttribute(final String name) {
-		attributes.put(name, "true");
-
 	}
 
 	public void addAttribute(final String name, final String value) {

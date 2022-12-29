@@ -28,7 +28,7 @@ public class Application implements CommandLineRunner, Runnable {
 	Configuration configuration;
 
 	@Autowired
-	Kontroller kontroller;
+	RestKontroller kontroller;
 
 	@Spec
 	CommandSpec spec;

@@ -5,10 +5,10 @@ var columnDefs = [
 	{ title: "INTERNAL-AUTH", field: "INTERNAL-AUTH" },
 	{ title: "EXTERNAL-AUTH", field: "EXTERNAL-AUTH" },
 	{ title: "ASSIGNED-IDP", field: "ASSIGNED-IDP" },
-	{ title: "SP/IDP", field: "SP/IDP" },
+	{ title: "SP-IDP", field: "SP-IDP" },
 	{ title: "COT", field: "COT", },
-	{ title: "HOSTED/REMOTE", field: "HOSTED/REMOTE" },
-	{ title: "REMARKS", field: "REMARKS", visible:false }
+	{ title: "HOSTED-REMOTE", field: "HOSTED-REMOTE" },
+	{ title: "REMARKS", field: "REMARKS", visible: false }
 ];
 
 const template = document.createElement('template');
@@ -61,18 +61,21 @@ document.getElementById("filter-clear").addEventListener("click", function() {
 	table.clearFilter();
 });
 
-var rowPopupFormatter = function(e, row, onRendered) {
-	var data = row.getData();
+function remarks(row) {
 	container = document.createElement("div");
-	contents = "<strong style='font-size:1.2em;'>REMARKS</strong><br/><ul style='padding:0;  margin-top:10px; margin-bottom:0;'>";
-	const items = data["REMARKS"].split("#");
-	for (const item of items)
+	contents = "<strong style='font-size:1.2em;'>" + row["ID"] + "</strong><br/><ul style='padding:0;  margin-top:10px; margin-bottom:0;'>";
+	const items = row["REMARKS"].split("#");
+	for (const item of items) {
+		const items = row["REMARKS"].split("#");
+
 		contents += "<li>" + item + "</li>";
+	}
 	contents += "</ul>";
 	container.innerHTML = contents;
 
 	return container;
-};
+}
+
 
 var table = new Tabulator("#example-table", {
 	height: "85vh",
@@ -81,10 +84,15 @@ var table = new Tabulator("#example-table", {
 	columns: columnDefs,
 	placeholder: "Awaiting Data, Please Load File",
 	groupBy: ["TYPE"],
-	rowClickPopup: rowPopupFormatter,
+	rowClickPopup: function(e, row, onRendered) {
+		return remarks(row.getData());
+	},
 	columnDefaults: {
 		headerFilter: "input",
 		resizable: true,
+		tooltip: function(e, row, onRendered) {
+			return remarks(row.getData());
+		}
 	},
 	dataLoaderLoading: dataLoaderLoading,
 	footerElement: '<span class="tabulator-counter float-left">' +

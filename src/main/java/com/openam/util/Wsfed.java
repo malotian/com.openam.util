@@ -22,15 +22,15 @@ public class Wsfed extends Entity {
 		OpenAM.getInstance().updateAuthAsPerPolicies(wsfed);
 
 		if (entityConfig.contains("IDPSSOConfig"))
-			wsfed.addAttribute(Entity.IDENTITY_PROVIDER);
+			wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
 
 		if (entityConfig.contains("SPSSOConfig"))
-			wsfed.addAttribute(Entity.SERVICE_PROVIDER);
+			wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
 
 		if (entityConfig.contains("hosted=\"true\""))
-			wsfed.addAttribute(Entity.HOSTED);
+			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
 		else if (entityConfig.contains("hosted=\"false\""))
-			wsfed.addAttribute(Entity.REMOTE);
+			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
 
 	}
 
@@ -56,18 +56,18 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !hasAttribute(Entity.IDENTITY_PROVIDER);
+		return !isIDP();
 	}
 
 	public boolean isNotSP() {
-		return !hasAttribute(Entity.SERVICE_PROVIDER);
+		return !isSP();
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 }

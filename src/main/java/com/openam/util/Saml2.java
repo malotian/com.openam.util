@@ -30,7 +30,7 @@ public class Saml2 extends Entity {
 		OpenAM.getInstance().updateAuthAsPerPolicies(saml2);
 
 		if (metaData.contains("IDPSSODescriptor")) {
-			saml2.addAttribute(Entity.IDENTITY_PROVIDER);
+			saml2.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
 
 			if (json.has("entityConfig")) {
 				final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
@@ -44,16 +44,16 @@ public class Saml2 extends Entity {
 
 		}
 		if (metaData.contains("SPSSODescriptor"))
-			saml2.addAttribute(Entity.SERVICE_PROVIDER);
+			saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
 
 		if (!json.has("entityConfig"))
 			return;
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		if (entityConfig.contains("hosted=\"true\""))
-			saml2.addAttribute(Entity.HOSTED);
+			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
 		else if (entityConfig.contains("hosted=\"false\""))
-			saml2.addAttribute(Entity.REMOTE);
+			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
 
 	}
 
@@ -74,19 +74,19 @@ public class Saml2 extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !hasAttribute(Entity.IDENTITY_PROVIDER);
+		return !isIDP();
 	}
 
 	public boolean isNotSP() {
-		return !hasAttribute(Entity.SERVICE_PROVIDER);
+		return !isSP();
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 
 }

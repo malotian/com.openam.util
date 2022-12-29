@@ -69,31 +69,43 @@ public class CircleOfTrust extends Entity {
 			sps.remove(idps.stream().findFirst().get());
 		}
 
-		if (idps.size() > 1)
+		if (idps.size() > 1) {
 			CircleOfTrust.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
+			final var remarks = MessageFormat.format("IDP(s): {0}", Util.json(idps.stream().map(EntityID::getID).toArray()));
+			cot.addRemarks(remarks);
+		}
 
 		cot.setSps(sps);
 		cot.setIdps(idps);
 		cot.getSps().forEach(sp -> Entity.get(sp).addAttribute(Entity.COT, cot.getID()));
 
-		if (cot.hasIdp()) {
-			cot.addAttribute(Entity.ASSIGNED_IDP, cot.getIdp().getID());
-			final var idp = Entity.get(cot.getIdp());
-			cot.getSps().forEach(spID -> {
-				final var sp = Entity.get(spID);
-				sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
-				if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
-					sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-					final var remarks = MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID());
-					sp.addRemarks(remarks);
-				}
-				if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
-					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
-					final var remarks = MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID());
-					sp.addRemarks(remarks);
-				}
-			});
+		if (!cot.hasIdp()) {
+			cot.addRemarks("IDP(s): None");
+			return;
 		}
+
+		cot.addAttribute(Entity.ASSIGNED_IDP, cot.getIdp().getID());
+		cot.addRemarks(MessageFormat.format("ASSIGNED-IDP: {0}", cot.getIdp().getID()));
+		final var idp = Entity.get(cot.getIdp());
+
+		cot.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
+		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
+		cot.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
+
+		cot.getSps().forEach(spID -> {
+			final var sp = Entity.get(spID);
+			sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
+			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
+				sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
+				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
+			}
+			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
+				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
+				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
+			}
+
+		});
+
 	}
 
 	private static Set<EntityID> filterIdp(final Set<EntityID> trustedProviders, final boolean strict) {

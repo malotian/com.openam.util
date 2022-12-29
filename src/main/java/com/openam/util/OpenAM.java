@@ -233,21 +233,21 @@ public class OpenAM {
 		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(entity)) {
 			final var policies = OpenAM.getInstance().getInternalMFAPoliciesApplicable(entity);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policy:{1}", entity.getAttribute(Entity.INTERNAL_AUTH),
-					policies.stream().map(Policy::getID).collect(Collectors.joining(", ")));
+			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH),
+					Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
 			OpenAM.logger.debug(remarks);
 
 		} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(entity)) {
 			final var policies = OpenAM.getInstance().getInternalCERTPoliciesApplicable(entity);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policy:{1}", entity.getAttribute(Entity.INTERNAL_AUTH),
-					policies.stream().map(Policy::getID).collect(Collectors.joining(", ")));
+			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH),
+					Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
 			OpenAM.logger.debug(remarks);
 		} else {
 			entity.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policy:None", entity.getAttribute(Entity.INTERNAL_AUTH));
+			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: None", entity.getAttribute(Entity.INTERNAL_AUTH));
 			entity.addRemarks(remarks);
 			OpenAM.logger.debug(remarks);
 		}
@@ -255,13 +255,13 @@ public class OpenAM {
 		if (OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(entity)) {
 			final var policies = OpenAM.getInstance().getExternalMFAPoliciesApplicable(entity);
 			entity.addAttribute(Entity.EXTERNAL_AUTH, "MFA");
-			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policy:{1}", entity.getAttribute(Entity.EXTERNAL_AUTH),
-					policies.stream().map(Policy::getID).collect(Collectors.joining(", ")));
+			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.EXTERNAL_AUTH),
+					Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
 			OpenAM.logger.debug(remarks);
 		} else {
 			entity.addAttribute(Entity.EXTERNAL_AUTH, "PWD");
-			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policy:None", entity.getAttribute(Entity.EXTERNAL_AUTH));
+			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: None", entity.getAttribute(Entity.EXTERNAL_AUTH));
 			entity.addRemarks(remarks);
 			OpenAM.logger.debug(remarks);
 		}
