@@ -23,6 +23,8 @@ public class OAuth2Client extends Entity {
 		if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues"))
 			json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
 
+		OpenAM.getInstance().updateAuthAsPerPolicies(oauth2Client);
+
 		if (!acrs.isEmpty()) {
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
 			if (acrs.contains("2"))
@@ -30,16 +32,7 @@ public class OAuth2Client extends Entity {
 			if (acrs.contains("4") || acrs.contains("6"))
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
 
-		} else {
-			if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(oauth2Client))
-				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-			else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(oauth2Client))
-				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-			else
-				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(oauth2Client) ? "MFA" : "PWD");
 		}
-
 	}
 
 	public static void process(final JsonNode oauth2Clients) {

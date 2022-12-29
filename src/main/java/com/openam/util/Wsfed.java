@@ -19,6 +19,7 @@ public class Wsfed extends Entity {
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		final var wsfed = new Wsfed(id);
+		OpenAM.getInstance().updateAuthAsPerPolicies(wsfed);
 
 		if (entityConfig.contains("IDPSSOConfig"))
 			wsfed.addAttribute(Entity.IDENTITY_PROVIDER);
@@ -30,14 +31,6 @@ public class Wsfed extends Entity {
 			wsfed.addAttribute(Entity.HOSTED);
 		else if (entityConfig.contains("hosted=\"false\""))
 			wsfed.addAttribute(Entity.REMOTE);
-
-		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(wsfed))
-			wsfed.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-		else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(wsfed))
-			wsfed.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-		else
-			wsfed.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-		wsfed.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(wsfed) ? "MFA" : "PWD");
 
 	}
 

@@ -2,6 +2,7 @@ package com.openam.util;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -22,11 +23,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class OpenAM {
 
+	private static OpenAM instance = new OpenAM();
+	private static final Logger logger = LoggerFactory.getLogger(OpenAM.class);
+
 	public static Pattern patternCirceOfTrust2025 = Pattern.compile("25|2025");
 	public static Pattern patternCirceOfTrust2031 = Pattern.compile("31|2031");
-
-	private static final Logger logger = LoggerFactory.getLogger(OpenAM.class);
-	private static OpenAM instance = new OpenAM();
 
 	public static OpenAM getInstance() {
 		return OpenAM.instance;
@@ -110,10 +111,6 @@ public class OpenAM {
 		return getCircleOfTrusts().stream().filter(e -> OpenAM.patternCirceOfTrust2031.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
-	public Set<Policy> getExternalMFAPolicies() {
-		return getPolicies().stream().filter(e -> Policy.patternExternalMFAPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
-	}
-
 	HttpClient getHttpclient() {
 		return httpClient;
 	}
@@ -122,12 +119,32 @@ public class OpenAM {
 		return getPolicies().stream().filter(e -> Policy.patternInternalCERTPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
+	public Set<Policy> getInternalCERTPoliciesApplicable(EntityID id) {
+		return getInternalCERTPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	}
+
 	public Set<Policy> getInternalMFAPolicies() {
 		return getPolicies().stream().filter(e -> Policy.patternInternalMFAPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
+	public Set<Policy> getInternalMFAPoliciesApplicable(EntityID id) {
+		return getInternalMFAPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	}
+
 	public Set<Policy> getInternalOnlyPolicies() {
 		return getPolicies().stream().filter(e -> Policy.patternInternalOnlyPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getInternalOnlyPoliciesApplicable(EntityID id) {
+		return getInternalOnlyPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getExternalMFAPolicies() {
+		return getPolicies().stream().filter(e -> Policy.patternExternalMFAPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getExternalMFAPoliciesApplicable(EntityID id) {
+		return getExternalMFAPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
 	}
 
 	ObjectMapper getMapper() {
@@ -210,6 +227,44 @@ public class OpenAM {
 
 		final var jsonCircleOfTrust = mapper.readValue(Paths.get("jsonCircleOfTrust.json").toFile(), JsonNode.class);
 		CircleOfTrust.process(jsonCircleOfTrust);
+	}
+
+	public void updateAuthAsPerPolicies(final Entity entity) {
+		if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(entity)) {
+			Set<Policy> policies = OpenAM.getInstance().getInternalMFAPoliciesApplicable(entity);
+			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
+			String remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policy:{1}", entity.getAttribute(Entity.INTERNAL_AUTH),
+					policies.stream().map(p -> p.getID()).collect(Collectors.joining(", ")));
+			entity.addRemarks(remarks);
+			logger.debug(remarks);
+
+		} else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(entity)) {
+			Set<Policy> policies = OpenAM.getInstance().getInternalCERTPoliciesApplicable(entity);
+			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
+			String remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policy:{1}", entity.getAttribute(Entity.INTERNAL_AUTH),
+					policies.stream().map(p -> p.getID()).collect(Collectors.joining(", ")));
+			entity.addRemarks(remarks);
+			logger.debug(remarks);
+		} else {
+			entity.addAttribute(Entity.INTERNAL_AUTH, "PWD");
+			String remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policy:None", entity.getAttribute(Entity.INTERNAL_AUTH));
+			entity.addRemarks(remarks);
+			logger.debug(remarks);
+		}
+
+		if (OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(entity)) {
+			Set<Policy> policies = OpenAM.getInstance().getExternalMFAPoliciesApplicable(entity);
+			entity.addAttribute(Entity.EXTERNAL_AUTH, "MFA");
+			String remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policy:{1}", entity.getAttribute(Entity.EXTERNAL_AUTH),
+					policies.stream().map(p -> p.getID()).collect(Collectors.joining(", ")));
+			entity.addRemarks(remarks);
+			logger.debug(remarks);
+		} else {
+			entity.addAttribute(Entity.EXTERNAL_AUTH, "PWD");
+			String remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policy:None", entity.getAttribute(Entity.EXTERNAL_AUTH));
+			entity.addRemarks(remarks);
+			logger.debug(remarks);
+		}
 	}
 
 }

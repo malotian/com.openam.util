@@ -43,11 +43,5 @@ public class Application implements CommandLineRunner, Runnable {
 	@Override
 	public void run(final String... args) {
 		Configuration.setInstance(configuration);
-		try {
-			kontroller.downloadJson();
-		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

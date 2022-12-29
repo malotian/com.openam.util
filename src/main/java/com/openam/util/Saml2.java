@@ -27,6 +27,7 @@ public class Saml2 extends Entity {
 		final var metaData = json.get("metadata").asText();
 
 		final var saml2 = new Saml2(id);
+		OpenAM.getInstance().updateAuthAsPerPolicies(saml2);
 
 		if (metaData.contains("IDPSSODescriptor")) {
 			saml2.addAttribute(Entity.IDENTITY_PROVIDER);

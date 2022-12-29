@@ -1,6 +1,7 @@
 package com.openam.util;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,7 +50,6 @@ public class CircleOfTrust extends Entity {
 		if (idps.size() == 0) {
 			CircleOfTrust.logger.warn("no idps(strict=true) in cot: {}", cot.getID());
 			idps = CircleOfTrust.filterIdp(trustedProviders, false);
-
 		}
 
 		cot.setIdps(idps);
@@ -75,26 +75,23 @@ public class CircleOfTrust extends Entity {
 		cot.setSps(sps);
 		cot.setIdps(idps);
 		cot.getSps().forEach(sp -> Entity.get(sp).addAttribute(Entity.COT, cot.getID()));
+
 		if (cot.hasIdp()) {
 			cot.addAttribute(Entity.ASSIGNED_IDP, cot.getIdp().getID());
 			final var idp = Entity.get(cot.getIdp());
 			cot.getSps().forEach(spID -> {
 				final var sp = Entity.get(spID);
 				sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
-				if (idp.hasAttribute(Entity.INTERNAL_AUTH)) {
+				if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || sp.getAttribute(Entity.INTERNAL_AUTH).equals("PWD"))) {
 					sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-				} else if (idp.hasAttribute(Entity.INTERNAL_AUTH)) {
-					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
+					String remarks = MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID());
+					sp.addRemarks(remarks);
 				}
-		
-				if (OpenAM.getInstance().getResourcesForInternalMFAPolicies().contains(sp))
-					sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-				else if (OpenAM.getInstance().getResourcesForInternalCERTPolicies().contains(sp))
-					sp.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-				else
-					sp.addAttribute(Entity.INTERNAL_AUTH, "PWD");
-				sp.addAttribute(Entity.EXTERNAL_AUTH, OpenAM.getInstance().getResourcesForExternalMFAPolices().contains(sp) ? "MFA" : "PWD");
-
+				if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || sp.getAttribute(Entity.EXTERNAL_AUTH).equals("PWD"))) {
+					sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
+					String remarks = MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID());
+					sp.addRemarks(remarks);
+				}
 			});
 		}
 	}
@@ -162,36 +159,3 @@ public class CircleOfTrust extends Entity {
 		this.sps = sps;
 	}
 }
-
-//string id = (string)json["_id"];
-//var _trustedProviders = json["trustedProviders"];
-//var trustedProviders = from t in _trustedProviders let eid = EntityID.ParseProviderEntry((string)t) select eid;
-//
-//var idps = trustedProviders.Where(eid => {
-//    if (!OpenAM.HasEntity(eid)) {
-//        Logger.ErrorFormat("invalid entity-id: {0} in circle-of-trust: {1}", eid, id);
-//        return false;
-//    }
-//    dynamic entity = OpenAM.GetEntity(eid);
-//    return entity.IsOnlyIDP;
-//});
-//
-//if (idps.Count() > 1) {
-//    Logger.WarnFormat("multiple idps: {0} in circle-of-trust: {1}", string.Join(", ", idps), id);
-//}
-//
-//EntityID idp = idps.Where(eid => OpenAM.HasEntity(eid)).FirstOrDefault();
-//if (null == idp) {
-//    Logger.ErrorFormat("no idp in circle-of-trust: {0}", id);
-//    return;
-//}
-//
-//CircleOfTrust e = new CircleOfTrust(id);
-//e.InternalOnly = OpenAM.GetEntity(idp).InternalOnly;
-//e.InternalMFA = OpenAM.GetEntity(idp).InternalMFA;
-//e.SetOfIDP.UnionWith(idps);
-//e.ChosenIDP = idp;
-//
-//var serviceProviders = trustedProviders.ToList();
-//serviceProviders.Remove(idp);
-//e.SetOfSP.UnionWith(serviceProviders);
