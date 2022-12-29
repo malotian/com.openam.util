@@ -1,5 +1,6 @@
 //headerFilterFunc: (headerValue, rowValue, rowData, filterParams) => { return RegExp(headerValue, 'i').test(rowValue);}
 var columnDefs = [
+	{rowHandle:true, formatter:"handle", headerSort:false, frozen:true},
 	{ title: "ID", field: "ID", frozen: true },
 	{ title: "TYPE", field: "TYPE", frozen: true },
 	{ title: "INTERNAL-AUTH", field: "INTERNAL-AUTH" },
@@ -84,6 +85,7 @@ var table = new Tabulator("#example-table", {
 	columns: columnDefs,
 	placeholder: "Awaiting Data, Please Load File",
 	groupBy: ["TYPE"],
+	movableRows:true,
 	rowClickPopup: function(e, row, onRendered) {
 		return remarks(row.getData());
 	},
