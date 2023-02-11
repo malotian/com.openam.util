@@ -14,7 +14,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Saml2 extends Entity {
 
 	private static final Logger logger = LoggerFactory.getLogger(Saml2.class);
-	public static Pattern patternCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
+	public static Pattern patternCertMfa = Pattern.compile(
+			"urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
 
 	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
@@ -43,17 +44,19 @@ public class Saml2 extends Entity {
 			}
 
 		}
-		if (metaData.contains("SPSSODescriptor"))
+		if (metaData.contains("SPSSODescriptor")) {
 			saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
+		}
 
 		if (!json.has("entityConfig"))
 			return;
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
-		if (entityConfig.contains("hosted=\"true\""))
+		if (entityConfig.contains("hosted=\"true\"")) {
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
-		else if (entityConfig.contains("hosted=\"false\""))
+		} else if (entityConfig.contains("hosted=\"false\"")) {
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
+		}
 
 	}
 
@@ -74,19 +77,19 @@ public class Saml2 extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
+		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !isIDP();
+		return !this.isIDP();
 	}
 
 	public boolean isNotSP() {
-		return !isSP();
+		return !this.isSP();
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
+		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 
 }

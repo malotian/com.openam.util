@@ -16,25 +16,25 @@ public class Configuration {
 		Configuration.singleton = instance;
 	}
 
+	@Value("${openam-password}")
+	private String openamPassword;
+
 	@Value("${openam-url}")
 	private String openamUrl;
 
 	@Value("${openam-username}")
 	private String openamUsername;
 
-	@Value("${openam-password}")
-	private String openamPassword;
-
 	public String getOpenamPassword() {
-		return openamPassword;
+		return this.openamPassword;
 	}
 
 	public String getOpenamUrl() {
-		return openamUrl;
+		return this.openamUrl;
 	}
 
 	public String getOpenamUsername() {
-		return openamUsername;
+		return this.openamUsername;
 	}
 
 }

@@ -50,20 +50,20 @@ public class EntityID {
 		if (this == o)
 			return true;
 		final var that = (EntityID) o;
-		return entityType.equals(that.entityType) && id.equals(that.id);
+		return this.entityType.equals(that.entityType) && this.id.equals(that.id);
 	}
 
 	public EntityType getEntityType() {
-		return entityType;
+		return this.entityType;
 	}
 
 	public String getID() {
-		return id;
+		return this.id;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(entityType, id);
+		return Objects.hash(this.entityType, this.id);
 	}
 
 	public String json() {
@@ -77,6 +77,6 @@ public class EntityID {
 
 	@Override
 	public String toString() {
-		return json();
+		return this.json();
 	}
 }

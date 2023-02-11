@@ -12,17 +12,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Policy extends Entity {
 
 	private static final Logger logger = LoggerFactory.getLogger(Policy.class);
-	public static Pattern patternExternalMFAPolicies = Pattern.compile("External User MFA|SAML/WS-Fed/OAuth External MFA|ExternalUsersTrustedDevice");
+	public static Pattern patternExternalMFAPolicies = Pattern
+			.compile("External User MFA|SAML/WS-Fed/OAuth External MFA|ExternalUsersTrustedDevice");
 	public static Pattern patternInternalCERTPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal CERT");
-	public static Pattern patternInternalMFAPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal MFA|InternalUsersTrustedDevice");
+	public static Pattern patternInternalMFAPolicies = Pattern
+			.compile("SAML/WS-Fed/OAuth Internal MFA|InternalUsersTrustedDevice");
 	public static Pattern patternInternalOnlyPolicies = Pattern.compile("Internal_Only_Restriction|Internal_only");
 
 	public static void _process(final JsonNode json) {
 
 		final var policyname = json.get("_id").asText();
 
-		if (!Policy.patternInternalOnlyPolicies.matcher(policyname).find() && !Policy.patternInternalMFAPolicies.matcher(policyname).find()
-				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find() && !Policy.patternInternalCERTPolicies.matcher(policyname).find())
+		if (!Policy.patternInternalOnlyPolicies.matcher(policyname).find()
+				&& !Policy.patternInternalMFAPolicies.matcher(policyname).find()
+				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find()
+				&& !Policy.patternInternalCERTPolicies.matcher(policyname).find())
 			return;
 		final var policy = new Policy(policyname);
 		if (!json.has("resources")) {
@@ -51,7 +55,7 @@ public class Policy extends Entity {
 	}
 
 	Set<EntityID> getResources() {
-		return resources;
+		return this.resources;
 	}
 
 	void setResources(final Set<EntityID> resources) {

@@ -21,22 +21,25 @@ public class Wsfed extends Entity {
 		final var wsfed = new Wsfed(id);
 		OpenAM.getInstance().updateAuthAsPerPolicies(wsfed);
 
-		if (entityConfig.contains("IDPSSOConfig"))
+		if (entityConfig.contains("IDPSSOConfig")) {
 			wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
+		}
 
-		if (entityConfig.contains("SPSSOConfig"))
+		if (entityConfig.contains("SPSSOConfig")) {
 			wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
+		}
 
-		if (entityConfig.contains("hosted=\"true\""))
+		if (entityConfig.contains("hosted=\"true\"")) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
-		else if (entityConfig.contains("hosted=\"false\""))
+		} else if (entityConfig.contains("hosted=\"false\"")) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
+		}
 
 	}
 
 	public static void main(final String[] args) {
-		System.out.println("aaurn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|2|service=CERT|defaultaa"
-				.matches(".*urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default.*"));
+//		System.out.println("aaurn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|2|service=CERT|defaul"
+//				.matches(".*urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default.*"));
 	}
 
 	public static void process(final JsonNode saml2Entities) {
@@ -56,18 +59,18 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
+		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !isIDP();
+		return !this.isIDP();
 	}
 
 	public boolean isNotSP() {
-		return !isSP();
+		return !this.isSP();
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
+		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 }

@@ -15,9 +15,19 @@
 	<div th:replace="~{fragments/header :: header}"> </div>
 	<main role="main" class="flex-shrink-0">
 		<div>
+			<button id="fetch-openam-test">Ignore-Me</button>
 			<button id="fetch-openam">Fetch(OpenAM)</button>
 			<button id="export-csv">Export(CSV)</button>
 			<button id="import-csv">Import(CSV)</button>
+			<button id="all-apps-only">Apps-Only</button>
+			<button id="saml-apps-only">Saml-Apps-Only</button>
+			<button id="wsfed-apps-only">Wsfed-Apps-Only</button>
+			<button id="oauth-apps-only">OAuth-Apps-Only</button>
+			<button id="2031-saml-wsfed-only">2031-Only</button>
+			<button id="2025-saml-wsfed-only">2025-Only</button>
+			<button id="internal-apps-only">Internal-Only</button>
+			<button id="saml-apps-internal-only">Saml-Internal-Only</button>
+			<button id="wsfed-apps-internal-only">Wsfed-Internal-Only</button>
 		</div>
 		<div>
 			<select id="filter-field">

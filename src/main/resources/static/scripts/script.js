@@ -1,6 +1,6 @@
 //headerFilterFunc: (headerValue, rowValue, rowData, filterParams) => { return RegExp(headerValue, 'i').test(rowValue);}
 var columnDefs = [
-	{rowHandle:true, formatter:"handle", headerSort:false, frozen:true},
+	{ rowHandle: true, formatter: "handle", headerSort: false, frozen: true },
 	{ title: "ID", field: "ID", frozen: true },
 	{ title: "TYPE", field: "TYPE", frozen: true },
 	{ title: "INTERNAL-AUTH", field: "INTERNAL-AUTH" },
@@ -55,12 +55,16 @@ document.getElementById("filter-value").addEventListener("keyup", updateFilter);
 
 //Clear filters on "Clear Filters" button click
 document.getElementById("filter-clear").addEventListener("click", function() {
+	clearFilterEx();
+});
+
+function clearFilterEx(row) {
 	fieldEl.value = "";
 	typeEl.value = "=";
 	valueEl.value = "";
 
 	table.clearFilter();
-});
+}
 
 function remarks(row) {
 	container = document.createElement("div");
@@ -85,7 +89,7 @@ var table = new Tabulator("#example-table", {
 	columns: columnDefs,
 	placeholder: "Awaiting Data, Please Load File",
 	groupBy: ["TYPE"],
-	movableRows:true,
+	movableRows: true,
 	rowClickPopup: function(e, row, onRendered) {
 		return remarks(row.getData());
 	},
@@ -111,6 +115,10 @@ table.on("dataFiltered", function(filters, rows) {
 	$("#search_count").text(rows.length);
 });
 
+document.getElementById("fetch-openam-test").addEventListener("click", function() {
+	table.setData("/openam/json/test");
+});
+
 document.getElementById("import-csv").addEventListener("click", function() {
 	table.import("csv", ".csv");
 });
@@ -119,6 +127,63 @@ document.getElementById("fetch-openam").addEventListener("click", function() {
 	table.setData("/openam/json");
 });
 
+
 document.getElementById("export-csv").addEventListener("click", function() {
 	table.download("csv", "openam.csv");
+});
+
+document.getElementById("all-apps-only").addEventListener("click", function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["SAML2", "WSFED", "OAUTH2"] }, //name must be steve, bob or jim
+		]);
+
+});
+
+document.getElementById("saml-apps-only").addEventListener("click", function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["SAML2"] }, //name must be steve, bob or jim
+		]);
+});
+
+document.getElementById("wsfed-apps-only").addEventListener("click", function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["WSFED"] }, //name must be steve, bob or jim
+		]);
+});
+
+document.getElementById("oauth-apps-only").addEventListener("click", function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "TYPE", type: "in", value: ["OAUTH2"] }, //name must be steve, bob or jim
+		]);
+});
+
+document.getElementById("2031-saml-wsfed-only").addEventListener("click", function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["SAML2", "WSFED"] }, //name must be steve, bob or jim
+			{ field: "COT", type: "regex", value: "31" }, //name must be steve, bob or jim
+		]);
+});
+
+document.getElementById("2025-saml-wsfed-only").addEventListener("click", function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["SAML2", "WSFED"] }, //name must be steve, bob or jim
+			{ field: "COT", type: "regex", value: "^((?!31).)*$" }, //name must be steve, bob or jim
+		]);
 });
