@@ -13,8 +13,9 @@ public class Wsfed extends Entity {
 	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
 
-		if (!json.has("entityConfig"))
+		if (!json.has("entityConfig")) {
 			return;
+		}
 
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
@@ -37,11 +38,6 @@ public class Wsfed extends Entity {
 
 	}
 
-	public static void main(final String[] args) {
-//		System.out.println("aaurn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|2|service=CERT|defaul"
-//				.matches(".*urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default.*"));
-	}
-
 	public static void process(final JsonNode saml2Entities) {
 		final var result = saml2Entities.get("result");
 		result.forEach(se -> {
@@ -59,18 +55,18 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isIDP() {
-		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !this.isIDP();
+		return !isIDP();
 	}
 
 	public boolean isNotSP() {
-		return !this.isSP();
+		return !isSP();
 	}
 
 	public boolean isSP() {
-		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 }

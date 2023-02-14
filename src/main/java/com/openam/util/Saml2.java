@@ -14,8 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Saml2 extends Entity {
 
 	private static final Logger logger = LoggerFactory.getLogger(Saml2.class);
-	public static Pattern patternCertMfa = Pattern.compile(
-			"urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
+	public static Pattern patternCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
 
 	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
@@ -48,8 +47,9 @@ public class Saml2 extends Entity {
 			saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
 		}
 
-		if (!json.has("entityConfig"))
+		if (!json.has("entityConfig")) {
 			return;
+		}
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		if (entityConfig.contains("hosted=\"true\"")) {
@@ -77,19 +77,19 @@ public class Saml2 extends Entity {
 	}
 
 	public boolean isIDP() {
-		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
-		return !this.isIDP();
+		return !isIDP();
 	}
 
 	public boolean isNotSP() {
-		return !this.isSP();
+		return !isSP();
 	}
 
 	public boolean isSP() {
-		return this.hasAttribute(Entity.SP_IDP) && this.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 
 }

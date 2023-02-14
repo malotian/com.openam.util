@@ -35,11 +35,11 @@ public class Application implements CommandLineRunner, Runnable {
 
 	@Override
 	public void run() {
-		throw new ParameterException(this.spec.commandLine(), "Missing required subcommand");
+		throw new ParameterException(spec.commandLine(), "Missing required subcommand");
 	}
 
 	@Override
 	public void run(final String... args) {
-		Configuration.setInstance(this.configuration);
+		Configuration.setInstance(configuration);
 	}
 }

@@ -26,15 +26,15 @@ public class Configuration {
 	private String openamUsername;
 
 	public String getOpenamPassword() {
-		return this.openamPassword;
+		return openamPassword;
 	}
 
 	public String getOpenamUrl() {
-		return this.openamUrl;
+		return openamUrl;
 	}
 
 	public String getOpenamUsername() {
-		return this.openamUsername;
+		return openamUsername;
 	}
 
 }

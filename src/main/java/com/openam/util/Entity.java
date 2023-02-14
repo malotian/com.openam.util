@@ -44,30 +44,30 @@ public class Entity extends EntityID {
 	}
 
 	public void addAttribute(final String name, final String value) {
-		this.attributes.put(name, value);
+		attributes.put(name, value);
 
 	}
 
 	public void addRemarks(final String value) {
 		var helper = value;
-		if (this.attributes.containsKey(Entity.REMARKS)) {
-			helper = this.attributes.get(Entity.REMARKS) + "#" + value;
+		if (attributes.containsKey(Entity.REMARKS)) {
+			helper = attributes.get(Entity.REMARKS) + "#" + value;
 		}
-		this.attributes.put(Entity.REMARKS, helper);
+		attributes.put(Entity.REMARKS, helper);
 
 	}
 
 	public String getAttribute(final String attribute) {
-		return this.attributes.get(attribute);
+		return attributes.get(attribute);
 
 	}
 
 	public HashMap<String, String> getAttributes() {
-		return this.attributes;
+		return attributes;
 	}
 
 	public boolean hasAttribute(final String attribute) {
-		return this.attributes.containsKey(attribute);
+		return attributes.containsKey(attribute);
 
 	}
 }

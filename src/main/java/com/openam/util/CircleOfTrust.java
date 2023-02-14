@@ -26,8 +26,7 @@ public class CircleOfTrust extends Entity {
 			return;
 		}
 
-		CircleOfTrust.logger.info("cot: {}, count: {}", id,
-				StreamSupport.stream(json.get("trustedProviders").spliterator(), false).count());
+		CircleOfTrust.logger.info("cot: {}, count: {}", id, StreamSupport.stream(json.get("trustedProviders").spliterator(), false).count());
 
 		final var typesEncountered = new HashSet<>();
 
@@ -44,8 +43,7 @@ public class CircleOfTrust extends Entity {
 		});
 
 		if (typesEncountered.size() > 1) {
-			CircleOfTrust.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered),
-					cot.getID());
+			CircleOfTrust.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
 		}
 
 		final var sps = new HashSet<>(trustedProviders);
@@ -78,8 +76,7 @@ public class CircleOfTrust extends Entity {
 
 		if (idps.size() > 1) {
 			CircleOfTrust.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
-			final var remarks = MessageFormat.format("IDP(s): {0}",
-					Util.json(idps.stream().map(EntityID::getID).toArray()));
+			final var remarks = MessageFormat.format("IDP(s): {0}", Util.json(idps.stream().map(EntityID::getID).toArray()));
 			cot.addRemarks(remarks);
 		}
 
@@ -97,25 +94,19 @@ public class CircleOfTrust extends Entity {
 		final var idp = Entity.get(cot.getIdp());
 
 		cot.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH),
-				idp.getID()));
-		cot.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.EXTERNAL_AUTH),
-				idp.getID()));
+		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
+		cot.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 
 		cot.getSps().forEach(spID -> {
 			final var sp = Entity.get(spID);
 			sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
-			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH)
-					|| "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
+			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH),
-						idp.getID()));
+				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
 			}
-			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH)
-					|| "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
+			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
-				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH),
-						idp.getID()));
+				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 			}
 
 		});
@@ -129,12 +120,14 @@ public class CircleOfTrust extends Entity {
 
 			if (entity.getClass() == Saml2.class) {
 				final var se = (Saml2) entity;
-				if (se.isIDP())
+				if (se.isIDP()) {
 					return strict ? se.isNotSP() : true;
+				}
 			} else if (entity.getClass() == Wsfed.class) {
 				final var we = (Wsfed) entity;
-				if (we.isIDP())
+				if (we.isIDP()) {
 					return strict ? we.isNotSP() : true;
+				}
 			}
 			return false;
 
@@ -162,19 +155,19 @@ public class CircleOfTrust extends Entity {
 	}
 
 	EntityID getIdp() {
-		return this.getIdps().stream().findFirst().get();
+		return getIdps().stream().findFirst().get();
 	}
 
 	public Set<EntityID> getIdps() {
-		return this.idps;
+		return idps;
 	}
 
 	public Set<EntityID> getSps() {
-		return this.sps;
+		return sps;
 	}
 
 	boolean hasIdp() {
-		return this.getIdps().stream().findFirst().isPresent();
+		return getIdps().stream().findFirst().isPresent();
 	}
 
 	public void setIdps(final Set<EntityID> idps) {
