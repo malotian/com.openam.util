@@ -8,9 +8,13 @@ var columnDefs = [
 	{ title: "ASSIGNED-IDP", field: "ASSIGNED-IDP" },
 	{ title: "SP-IDP", field: "SP-IDP" },
 	{ title: "COT", field: "COT", },
+	{ title: "ACCOUNT-MAPPER", field: "ACCOUNT-MAPPER" },
+	{ title: "ATTRIBUTE-MAPPER", field: "ATTRIBUTE-MAPPER" },
 	{ title: "HOSTED-REMOTE", field: "HOSTED-REMOTE" },
 	{ title: "REMARKS", field: "REMARKS", visible: false }
 ];
+
+var dataTables = { "stage": [], "prod": [] };
 
 const template = document.createElement('template');
 template.innerHTML = '<div style="display:inline-block;" class="d-flex flex-row">' +
@@ -25,7 +29,6 @@ var valueEl = document.getElementById("filter-value");
 
 //Custom filter example
 function customFilter(data) {
-	return data.car && data.rating < 3;
 }
 
 //Trigger setFilter function with correct parameters
@@ -53,18 +56,13 @@ document.getElementById("filter-field").addEventListener("change", updateFilter)
 document.getElementById("filter-type").addEventListener("change", updateFilter);
 document.getElementById("filter-value").addEventListener("keyup", updateFilter);
 
-//Clear filters on "Clear Filters" button click
-document.getElementById("filter-clear").addEventListener("click", function() {
-	clearFilterEx();
-});
-
 function clearFilterEx(row) {
 	fieldEl.value = "";
 	typeEl.value = "=";
 	valueEl.value = "";
-
 	table.clearFilter();
 }
+
 
 function remarks(row) {
 	container = document.createElement("div");
@@ -80,7 +78,6 @@ function remarks(row) {
 
 	return container;
 }
-
 
 var table = new Tabulator("#example-table", {
 	height: "85vh",
@@ -104,10 +101,19 @@ var table = new Tabulator("#example-table", {
 	footerElement: '<span class="tabulator-counter float-left">' +
 		'Showing <span id="search_count"></span> results out of <span id="total_count"></span> ' +
 		'</span>',
+	ajaxResponse: function(url, params, response) {
+		//url - the URL of the request
+		//params - the parameters passed with the request
+		//response - the JSON object returned in the body of the response.
+		var env = $('input:radio[name=env]:checked').val();
+		dataTables[env] = response;
+		return response; //return the response data to tabulator
+	},
 });
 
 
 table.on("dataLoaded", function(data) {
+	var env = $('input:radio[name=env]:checked').val();
 	$("#total_count").text(data.length);
 });
 
@@ -115,24 +121,48 @@ table.on("dataFiltered", function(filters, rows) {
 	$("#search_count").text(rows.length);
 });
 
-document.getElementById("fetch-openam-test").addEventListener("click", function() {
-	table.setData("/openam/json/test");
+
+$("#fetch-openam-test").click(function() {
+	//table.setData("/openam/json/test");
 });
 
-document.getElementById("import-csv").addEventListener("click", function() {
+$("#import-csv").click(function() {
 	table.import("csv", ".csv");
 });
 
-document.getElementById("fetch-openam").addEventListener("click", function() {
-	table.setData("/openam/json");
+$("#fetch-openam").click(function() {
+	var env = $('input:radio[name=env]:checked').val();
+	table.setData("/openam/json?env=" + env);
+});
+
+$("input:radio[name='env']").change(function() {
+	var env = $('input:radio[name=env]:checked').val();
+	table.setData(dataTables[env]);
+});
+
+//Clear filters on "Clear Filters" button click
+$("#filter-clear").click(function() {
+	clearFilterEx();
 });
 
 
-document.getElementById("export-csv").addEventListener("click", function() {
-	table.download("csv", "openam.csv");
+function pad(n) {
+	return n < 10 ? '0' + n : n;
+}
+
+function timeStamp() {
+	const now = new Date();
+	const localDateTime = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + "-" +
+		pad(now.getHours()) + "-" + pad(now.getMinutes()) + "-" + pad(now.getSeconds());
+	return localDateTime;
+}
+
+$("#export-csv").click(function() {
+	var filName = "openam-" + timeStamp() + ".csv"
+	table.download("csv", filName);
 });
 
-document.getElementById("all-apps-only").addEventListener("click", function() {
+$("#all-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter
 		([
@@ -142,7 +172,7 @@ document.getElementById("all-apps-only").addEventListener("click", function() {
 
 });
 
-document.getElementById("saml-apps-only").addEventListener("click", function() {
+$("#saml-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter
 		([
@@ -151,7 +181,7 @@ document.getElementById("saml-apps-only").addEventListener("click", function() {
 		]);
 });
 
-document.getElementById("wsfed-apps-only").addEventListener("click", function() {
+$("#wsfed-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter
 		([
@@ -160,7 +190,7 @@ document.getElementById("wsfed-apps-only").addEventListener("click", function() 
 		]);
 });
 
-document.getElementById("oauth-apps-only").addEventListener("click", function() {
+$("#oauth-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter
 		([
@@ -168,7 +198,9 @@ document.getElementById("oauth-apps-only").addEventListener("click", function() 
 		]);
 });
 
-document.getElementById("2031-saml-wsfed-only").addEventListener("click", function() {
+
+
+$("#2031-saml-wsfed-only").click(function() {
 	table.clearFilter();
 	table.setFilter
 		([
@@ -178,12 +210,60 @@ document.getElementById("2031-saml-wsfed-only").addEventListener("click", functi
 		]);
 });
 
-document.getElementById("2025-saml-wsfed-only").addEventListener("click", function() {
+$("#2025-saml-wsfed-only").click(function() {
 	table.clearFilter();
 	table.setFilter
 		([
 			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
 			{ field: "TYPE", type: "in", value: ["SAML2", "WSFED"] }, //name must be steve, bob or jim
 			{ field: "COT", type: "regex", value: "^((?!31).)*$" }, //name must be steve, bob or jim
+		]);
+});
+
+
+$("#internal-apps-only").click(function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["SAML2", "WSFED", "OAUTH2"] }, //name must be steve, bob or jim
+			{ field: "EXTERNAL-AUTH", type: "in", value: ["N/A"] }, //name must be steve, bob or jim
+		]);
+});
+
+$("#saml-internal-only").click(function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["SAML2"] }, //name must be steve, bob or jim
+			{ field: "EXTERNAL-AUTH", type: "in", value: ["N/A"] }, //name must be steve, bob or jim
+		]);
+});
+
+$("#wsfed-internal-only").click(function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "SP-IDP", type: "!=", value: "IDP" }, //filter by age greater than 52
+			{ field: "TYPE", type: "in", value: ["WSFED"] }, //name must be steve, bob or jim
+			{ field: "EXTERNAL-AUTH", type: "in", value: ["N/A"] }, //name must be steve, bob or jim
+		]);
+});
+
+$("#oauth-internal-only").click(function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "TYPE", type: "in", value: ["OAUTH2"] }, //name must be steve, bob or jim
+			{ field: "EXTERNAL-AUTH", type: "in", value: ["N/A"] }, //name must be steve, bob or jim
+		]);
+});
+
+$("#stats-only").click(function() {
+	table.clearFilter();
+	table.setFilter
+		([
+			{ field: "TYPE", type: "in", value: ["STAT"] }, //name must be steve, bob or jim
 		]);
 });

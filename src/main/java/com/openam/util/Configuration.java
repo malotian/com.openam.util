@@ -19,22 +19,38 @@ public class Configuration {
 	@Value("${openam-password}")
 	private String openamPassword;
 
-	@Value("${openam-url}")
-	private String openamUrl;
+	@Value("${openam-stage-url}")
+	private String openamStageUrl;
+
+	@Value("${openam-prod-url}")
+	private String openamProdUrl;
 
 	@Value("${openam-username}")
 	private String openamUsername;
+
+	private String environment;
 
 	public String getOpenamPassword() {
 		return openamPassword;
 	}
 
 	public String getOpenamUrl() {
-		return openamUrl;
+		if ("stage".equals(environment)) {
+			return openamStageUrl;
+		}
+		if ("prod".equals(environment)) {
+			return openamProdUrl;
+		} else {
+			return null;
+		}
 	}
 
 	public String getOpenamUsername() {
 		return openamUsername;
+	}
+
+	public void useEnvironment(final String env) {
+		environment = env;
 	}
 
 }

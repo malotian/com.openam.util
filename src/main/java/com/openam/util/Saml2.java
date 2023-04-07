@@ -1,7 +1,7 @@
 package com.openam.util;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Saml2 extends Entity {
 
 	private static final Logger logger = LoggerFactory.getLogger(Saml2.class);
-	public static Pattern patternCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
 
 	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
@@ -34,12 +33,40 @@ public class Saml2 extends Entity {
 
 			if (json.has("entityConfig")) {
 				final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
-				final var matcher = Saml2.patternCertMfa.matcher(entityConfig);
+				final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(entityConfig);
 
 				if (matcher.find()) {
 					saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
 					saml2.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
 				}
+
+				final var attributeMappers = new ArrayList<String>();
+
+				if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find()) {
+					attributeMappers.add("DefaultIDPAttributeMapper");
+				}
+				if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find()) {
+					attributeMappers.add("PwCIdentityIDPAttributeMapper");
+				}
+				if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find()) {
+					attributeMappers.add("PwCIdentityWSFedIDPAttributeMapper");
+				}
+
+				saml2.addAttribute(Entity.ATTRIBUTE_MAPPER, String.join(",", attributeMappers));
+
+				final var accountMappers = new ArrayList<String>();
+				if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find()) {
+					accountMappers.add("DefaultIDPAccountMapper");
+				}
+				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find()) {
+					accountMappers.add("PwCIdentityMultipleNameIDAccountMapper");
+				}
+				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find()) {
+					accountMappers.add("PwCIdentityWsfedIDPAccountMapper");
+				}
+
+				saml2.addAttribute(Entity.ACCOUNT_MAPPER, String.join(",", accountMappers));
+
 			}
 
 		}

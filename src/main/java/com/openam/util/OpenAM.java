@@ -49,7 +49,7 @@ public class OpenAM {
 	private static List<Integer> RETRYABLE_500_HTTP_STATUS_CODES = Arrays.asList(HttpStatus.SC_SERVICE_UNAVAILABLE, HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_BAD_GATEWAY,
 			HttpStatus.SC_GATEWAY_TIMEOUT);
 
-	private static final int TIMEOUT_MILLIS = 30000;
+	private static final int TIMEOUT_MILLIS = 90000;
 
 	public static OpenAM getInstance() {
 		return OpenAM.instance;
