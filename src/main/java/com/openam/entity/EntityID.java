@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.entity;
 
 import java.util.Objects;
 

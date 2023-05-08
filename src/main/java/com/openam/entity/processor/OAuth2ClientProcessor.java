@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.entity.processor;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -7,15 +7,24 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.openam.entity.Entity;
+import com.openam.entity.EntityHelper;
+import com.openam.entity.OAuth2Client;
 
-public class OAuth2Client extends Entity {
+@Component
+public class OAuth2ClientProcessor {
 
-	private static final Logger logger = LoggerFactory.getLogger(OAuth2Client.class);
+	static final Logger logger = LoggerFactory.getLogger(OAuth2ClientProcessor.class);
 
-	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
+	@Autowired
+	protected EntityHelper helper;
+
+	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
 		final var oauth2Client = new OAuth2Client(id);
 
@@ -24,7 +33,7 @@ public class OAuth2Client extends Entity {
 			json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
 		}
 
-		OpenAM.getInstance().updateAuthAsPerPolicies(oauth2Client);
+		helper.updateAuthAsPerPolicies(oauth2Client);
 
 		if (!acrs.isEmpty()) {
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
@@ -37,20 +46,15 @@ public class OAuth2Client extends Entity {
 		}
 	}
 
-	public static void process(final JsonNode oauth2Clients) {
+	public void process(final JsonNode oauth2Clients) {
 		final var result = oauth2Clients.get("result");
 		result.forEach(oa -> {
 			try {
-				OAuth2Client._process(oa);
+				_process(oa);
 			} catch (final ParserConfigurationException | SAXException | IOException e) {
 				e.printStackTrace();
 			}
 		});
 
 	}
-
-	protected OAuth2Client(final String id) {
-		super(id, EntityType.OAUTH2);
-	}
-
 }

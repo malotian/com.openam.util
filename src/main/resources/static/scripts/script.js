@@ -132,7 +132,7 @@ $("#import-csv").click(function() {
 
 $("#fetch-openam").click(function() {
 	var env = $('input:radio[name=env]:checked').val();
-	table.setData("/openam/json?env=" + env);
+	table.setData("/rest/openam/json?env=" + env);
 });
 
 $("input:radio[name='env']").change(function() {

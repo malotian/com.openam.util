@@ -1,17 +1,30 @@
-package com.openam.util;
+package com.openam.entity.processor;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.openam.entity.Entity;
+import com.openam.entity.EntityHelper;
+import com.openam.entity.Wsfed;
 
-public class Wsfed extends Entity {
+@Component
+public class WsfedProcessor {
 
-	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
+	static final Logger logger = LoggerFactory.getLogger(WsfedProcessor.class);
+
+	@Autowired
+	protected EntityHelper helper;
+
+	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
 
 		if (!json.has("entityConfig")) {
@@ -21,7 +34,7 @@ public class Wsfed extends Entity {
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		final var wsfed = new Wsfed(id);
-		OpenAM.getInstance().updateAuthAsPerPolicies(wsfed);
+		helper.updateAuthAsPerPolicies(wsfed);
 
 		if (entityConfig.contains("IDPSSOConfig")) {
 			wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
@@ -65,35 +78,15 @@ public class Wsfed extends Entity {
 
 	}
 
-	public static void process(final JsonNode saml2Entities) {
+	public void process(final JsonNode saml2Entities) {
 		final var result = saml2Entities.get("result");
 		result.forEach(se -> {
 			try {
-				Wsfed._process(se);
+				_process(se);
 			} catch (final ParserConfigurationException | SAXException | IOException e) {
 				e.printStackTrace();
 			}
 		});
 
-	}
-
-	protected Wsfed(final String id) {
-		super(id, EntityType.WSFED);
-	}
-
-	public boolean isIDP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
-	}
-
-	public boolean isNotIDP() {
-		return !isIDP();
-	}
-
-	public boolean isNotSP() {
-		return !isSP();
-	}
-
-	public boolean isSP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
 }

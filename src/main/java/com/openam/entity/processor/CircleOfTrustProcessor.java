@@ -1,32 +1,46 @@
-package com.openam.util;
+package com.openam.entity.processor;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.openam.entity.CircleOfTrust;
+import com.openam.entity.Entity;
+import com.openam.entity.EntityHelper;
+import com.openam.entity.EntityID;
+import com.openam.entity.Saml2;
+import com.openam.entity.Wsfed;
+import com.openam.util.Util;
 
-public class CircleOfTrust extends Entity {
+@Component
+public class CircleOfTrustProcessor {
 
-	private static final Logger logger = LoggerFactory.getLogger(CircleOfTrust.class);
+	static final Logger logger = LoggerFactory.getLogger(CircleOfTrustProcessor.class);
 
-	public static void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
+	@Autowired
+	protected EntityHelper helper;
+
+	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
 		if (!json.has("trustedProviders")) {
-			CircleOfTrust.logger.warn("skipping, trustedProviders missing : {} ", json.get("_id").asText());
+			CircleOfTrustProcessor.logger.warn("skipping, trustedProviders missing : {} ", json.get("_id").asText());
 			return;
 		}
 
-		CircleOfTrust.logger.info("cot: {}, count: {}", id, StreamSupport.stream(json.get("trustedProviders").spliterator(), false).count());
+		// CircleOfTrust.logger.info("cot: {}, count: {}", id,
+		// StreamSupport.stream(json.get("trustedProviders").spliterator(),
+		// false).count());
 
 		final var typesEncountered = new HashSet<>();
 
@@ -36,24 +50,24 @@ public class CircleOfTrust extends Entity {
 			final var eid = EntityID.ParseProviderEntry(provider.asText());
 			typesEncountered.add(eid.getEntityType());
 			if (!Entity.has(eid)) {
-				CircleOfTrust.logger.warn("invalid entry: {} in cot: {}", eid, id);
+				CircleOfTrustProcessor.logger.warn("invalid entry: {} in cot: {}", eid, id);
 				return;
 			}
 			trustedProviders.add(eid);
 		});
 
 		if (typesEncountered.size() > 1) {
-			CircleOfTrust.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
+			CircleOfTrustProcessor.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
 		}
 
 		final var sps = new HashSet<>(trustedProviders);
 		// collect elements that are only idps
-		var idps = CircleOfTrust.filterIdp(trustedProviders, true);
+		var idps = filterIdp(trustedProviders, true);
 		sps.removeAll(idps); // remove all only idps
 
 		if (idps.size() == 0) {
-			CircleOfTrust.logger.warn("no idps(strict=true) in cot: {}", cot.getID());
-			idps = CircleOfTrust.filterIdp(trustedProviders, false);
+			CircleOfTrustProcessor.logger.warn("no idps(strict=true) in cot: {}", cot.getID());
+			idps = filterIdp(trustedProviders, false);
 		}
 
 		cot.setIdps(idps);
@@ -61,7 +75,7 @@ public class CircleOfTrust extends Entity {
 
 		// we will remove first one only from lits of sps
 		if (idps.isEmpty()) {
-			CircleOfTrust.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
+			CircleOfTrustProcessor.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
 		} else {
 			if (idps.size() > 1) {
 				final var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
@@ -75,7 +89,7 @@ public class CircleOfTrust extends Entity {
 		}
 
 		if (idps.size() > 1) {
-			CircleOfTrust.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
+			CircleOfTrustProcessor.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
 			final var remarks = MessageFormat.format("IDP(s): {0}", Util.json(idps.stream().map(EntityID::getID).toArray()));
 			cot.addRemarks(remarks);
 		}
@@ -113,7 +127,7 @@ public class CircleOfTrust extends Entity {
 
 	}
 
-	private static Set<EntityID> filterIdp(final Set<EntityID> trustedProviders, final boolean strict) {
+	private Set<EntityID> filterIdp(final Set<EntityID> trustedProviders, final boolean strict) {
 
 		return trustedProviders.stream().filter(eid -> {
 			final var entity = Entity.get(eid);
@@ -134,47 +148,15 @@ public class CircleOfTrust extends Entity {
 		}).collect(Collectors.toSet());
 	}
 
-	public static void process(final JsonNode circelOfTruts) {
+	public void process(final JsonNode circelOfTruts) {
 		final var result = circelOfTruts.get("result");
 		result.forEach(cot -> {
 			try {
-				CircleOfTrust._process(cot);
+				_process(cot);
 			} catch (final ParserConfigurationException | SAXException | IOException e) {
 				e.printStackTrace();
 			}
 		});
 
-	}
-
-	private Set<EntityID> idps = new HashSet<>();
-
-	private Set<EntityID> sps = new HashSet<>();
-
-	protected CircleOfTrust(final String id) {
-		super(id, EntityType.CIRCLE_OF_TRUST);
-	}
-
-	EntityID getIdp() {
-		return getIdps().stream().findFirst().get();
-	}
-
-	public Set<EntityID> getIdps() {
-		return idps;
-	}
-
-	public Set<EntityID> getSps() {
-		return sps;
-	}
-
-	boolean hasIdp() {
-		return getIdps().stream().findFirst().isPresent();
-	}
-
-	public void setIdps(final Set<EntityID> idps) {
-		this.idps = idps;
-	}
-
-	public void setSps(final Set<EntityID> sps) {
-		this.sps = sps;
 	}
 }

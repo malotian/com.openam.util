@@ -1,7 +1,12 @@
-package com.openam.util;
+package com.openam.entity;
 
 import java.util.HashMap;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.jcabi.aspects.Loggable;
 
 public class Entity extends EntityID {
 
@@ -39,6 +44,8 @@ public class Entity extends EntityID {
 	public static Pattern patternPwCIdentityMultipleNameIDAccountMapper = Pattern.compile("com.pwc.openam.saml2.mappers.PwCIdentityMultipleNameIDAccountMapper");
 	public static Pattern patternPwCIdentityWsfedIDPAccountMapper = Pattern.compile("com.pwc.pwcidentity.openam.accountmapper.PwCIdentityWsfedIDPAccountMapper");
 
+	private static final Logger logger = LoggerFactory.getLogger(Entity.class);
+
 	public static Entity get(final EntityID eid) {
 		return Entity.entities.get(eid);
 	}
@@ -49,6 +56,11 @@ public class Entity extends EntityID {
 
 	public static boolean has(final EntityID eid) {
 		return Entity.entities.containsKey(eid);
+	}
+
+	@Loggable
+	public static void initialize() {
+		Entity.entities = new HashMap<>();
 	}
 
 	protected HashMap<String, String> attributes = new HashMap<>();
@@ -69,7 +81,6 @@ public class Entity extends EntityID {
 			helper = attributes.get(Entity.REMARKS) + "#" + value;
 		}
 		attributes.put(Entity.REMARKS, helper);
-
 	}
 
 	public String getAttribute(final String attribute) {

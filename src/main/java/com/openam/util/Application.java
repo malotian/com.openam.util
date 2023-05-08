@@ -2,11 +2,11 @@ package com.openam.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 import groovyjarjarpicocli.CommandLine.Command;
 import groovyjarjarpicocli.CommandLine.Model.CommandSpec;
@@ -14,6 +14,7 @@ import groovyjarjarpicocli.CommandLine.ParameterException;
 import groovyjarjarpicocli.CommandLine.Spec;
 
 @SpringBootApplication
+@ComponentScan(basePackages = "com.openam.*")
 @Command(name = "com.openam.util", synopsisSubcommandLabel = "COMMAND", subcommands = {})
 public class Application implements CommandLineRunner, Runnable {
 	static Logger LOG = LoggerFactory.getLogger(Application.class);
@@ -23,12 +24,6 @@ public class Application implements CommandLineRunner, Runnable {
 		app.setBannerMode(Banner.Mode.OFF);
 		app.run(args);
 	}
-
-	@Autowired
-	Configuration configuration;
-
-	@Autowired
-	RestKontroller kontroller;
 
 	@Spec
 	CommandSpec spec;
@@ -40,6 +35,5 @@ public class Application implements CommandLineRunner, Runnable {
 
 	@Override
 	public void run(final String... args) {
-		Configuration.setInstance(configuration);
 	}
 }
