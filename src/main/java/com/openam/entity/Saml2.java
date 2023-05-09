@@ -2,7 +2,6 @@ package com.openam.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 public class Saml2 extends Entity {
 

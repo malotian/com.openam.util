@@ -130,6 +130,11 @@ $("#import-csv").click(function() {
 	table.import("csv", ".csv");
 });
 
+$("#fetch-local").click(function() {
+	var env = $('input:radio[name=env]:checked').val();
+	table.setData("/rest/local/json?env=" + env);
+});
+
 $("#fetch-openam").click(function() {
 	var env = $('input:radio[name=env]:checked').val();
 	table.setData("/rest/openam/json?env=" + env);
@@ -158,7 +163,8 @@ function timeStamp() {
 }
 
 $("#export-csv").click(function() {
-	var filName = "openam-" + timeStamp() + ".csv"
+	var env = $('input:radio[name=env]:checked').val();
+	var filName = env + "-openam-"+ timeStamp() + ".csv"
 	table.download("csv", filName);
 });
 

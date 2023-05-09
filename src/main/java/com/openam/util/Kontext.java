@@ -6,20 +6,22 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
-import com.jcabi.aspects.LogExceptions;
 import com.jcabi.aspects.Loggable;
 
 @Component
 public class Kontext {
 
 	public static Pattern patternPROD = Pattern.compile("prd|prod|production");
+	private static final Logger logger = LoggerFactory.getLogger(Kontext.class);
 
 	boolean useProd = true;
 
-	File file(final String filename) {
+	public File file(final String filename) {
 		return Paths.get(getEnvironment() + "/" + filename).toFile();
 	}
 
@@ -28,8 +30,7 @@ public class Kontext {
 	}
 
 	@Loggable(Loggable.DEBUG)
-	@LogExceptions
-	void initilize(final String environment) throws IOException {
+	public void initilize(final String environment) throws IOException {
 		useProd = !StringUtils.isEmptyOrWhitespace(environment) && Kontext.patternPROD.matcher(environment.toLowerCase()).find();
 
 		if (!Files.exists(Paths.get(getEnvironment()))) {

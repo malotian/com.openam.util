@@ -31,7 +31,7 @@ public class PolicyProcessor {
 			PolicyProcessor.logger.warn("skipping, resources missing for policy: {} ", json.get("_id").asText());
 			return;
 		}
-		PolicyProcessor.logger.warn("processing, policy: {} ", json.get("_id").asText());
+
 		json.get("resources").forEach(resource -> {
 			policy.getResources().add(EntityID.ParseResourceEntry(resource.asText()));
 		});

@@ -28,7 +28,7 @@ public class OpenAM {
 
 	public static Pattern patternCirceOfTrust2025 = Pattern.compile("25|2025");
 	public static Pattern patternCirceOfTrust2031 = Pattern.compile("31|2031");
-	
+
 	@Autowired
 	private RestKlient restKlient;
 
@@ -57,10 +57,6 @@ public class OpenAM {
 
 	public OpenAM() {
 		System.setProperty("jdk.httpclient.keepalive.timeout", "99999");
-	}
-
-	boolean fetch() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
-		return  fetchWs() && fetchOAuth2() && fetchPolicies() && fetchCircleOfTrust() && fetchSaml2();
 	}
 
 	private boolean fetchCircleOfTrust() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
@@ -93,18 +89,13 @@ public class OpenAM {
 
 	private boolean login() throws IOException, ClientProtocolException {
 		return restKlient.login("/json/realms/root/authenticate?authIndexType=service&authIndexValue=ldapService");
-
 	}
 
-	void loginAndFetchEntities() {
-		var retry = false;
-		do {
-			try {
-				retry = !login() || !fetch();
-			} catch (final Exception e) {
-				// retry = true;
-			}
-		} while (retry);
+	boolean loginAndFetchEntities() throws ClientProtocolException, IOException {
+		if (!login()) {
+			return false;
+		}
+		return fetchWs() && fetchOAuth2() && fetchPolicies() && fetchCircleOfTrust() && fetchSaml2();
 	}
 
 	void processEntities() throws ClientProtocolException, IOException {

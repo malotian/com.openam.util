@@ -24,12 +24,18 @@ public class RestKontroller {
 	@Autowired
 	protected RestHelper helper;
 
-	@GetMapping("/rest/openam/json")
-	public ResponseEntity<?> downloadJson(@RequestParam(name = "env") final String env) throws ClientProtocolException, IOException {
+	@GetMapping("/rest/local/json")
+	public ResponseEntity<?> fetchFromLocal(@RequestParam(name = "env") final String env) throws ClientProtocolException, IOException {
+		oam.processEntities();
+		final var result = helper.getEntitiesTable();
+		result.addAll(helper.getStatsTable());
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
+	}
 
+	@GetMapping("/rest/openam/json")
+	public ResponseEntity<?> fetchFromOpenAM(@RequestParam(name = "env") final String env) throws ClientProtocolException, IOException {
 		oam.loginAndFetchEntities();
 		oam.processEntities();
-
 		final var result = helper.getEntitiesTable();
 		result.addAll(helper.getStatsTable());
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);

@@ -33,13 +33,9 @@ public class Entity extends EntityID {
 	public static String SP_IDP = "SP-IDP";
 
 	public static Pattern patternPasswordProtectedTransportServiceCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
-
 	public static Pattern patternDefaultIDPAttributeMapper = Pattern.compile("com.sun.identity.saml2.plugins.DefaultIDPAttributeMapper");
-
 	public static Pattern patternPwCIdentityIDPAttributeMapper = Pattern.compile("com.pwc.pwcidentity.openam.attributemapper.PwCIdentityIDPAttributeMapper");
-
 	public static Pattern patternPwCIdentityWSFedIDPAttributeMapper = Pattern.compile("com.pwc.pwcidentity.openam.attributemapper.PwCIdentityWSFedIDPAttributeMapper");
-
 	public static Pattern patternDefaultIDPAccountMapper = Pattern.compile("com.sun.identity.saml2.plugins.DefaultIDPAccountMapper");
 	public static Pattern patternPwCIdentityMultipleNameIDAccountMapper = Pattern.compile("com.pwc.openam.saml2.mappers.PwCIdentityMultipleNameIDAccountMapper");
 	public static Pattern patternPwCIdentityWsfedIDPAccountMapper = Pattern.compile("com.pwc.pwcidentity.openam.accountmapper.PwCIdentityWsfedIDPAccountMapper");
