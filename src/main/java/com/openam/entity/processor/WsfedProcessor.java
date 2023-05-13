@@ -1,14 +1,26 @@
 package com.openam.entity.processor;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -24,7 +36,7 @@ public class WsfedProcessor {
 	@Autowired
 	protected EntityHelper helper;
 
-	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
+	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		final var id = json.get("_id").asText();
 
 		if (!json.has("entityConfig"))
@@ -64,6 +76,24 @@ public class WsfedProcessor {
 		if (entityConfig.contains("SPSSOConfig"))
 			wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
 
+		final var metaData = json.get("metadata").asText();
+		final var builderFactory = DocumentBuilderFactory.newInstance();
+		final var builder = builderFactory.newDocumentBuilder();
+		final var xmlDocument = builder.parse(new InputSource(new StringReader(metaData)));
+
+		final var xPath = XPathFactory.newInstance().newXPath();
+		final var xpathAddress = "//*[local-name() = 'TokenIssuerEndpoint']/*[local-name() = 'Address']";
+		final var nodeListAddress = (NodeList) xPath.compile(xpathAddress).evaluate(xmlDocument, XPathConstants.NODESET);
+
+		final var length = nodeListAddress.getLength();
+
+		final var redirectUrls = new ArrayList<>();
+		for (var i = 0; i < length; i++)
+			if (nodeListAddress.item(i).getNodeType() == Node.ELEMENT_NODE)
+				redirectUrls.add(nodeListAddress.item(i).getAttributes().getNamedItem("Location").getNodeValue());
+
+		wsfed.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(",", "\"", "\"")));
+
 		if (entityConfig.contains("hosted=\"true\""))
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
 		else if (entityConfig.contains("hosted=\"false\""))
@@ -76,7 +106,7 @@ public class WsfedProcessor {
 		result.forEach(se -> {
 			try {
 				_process(se);
-			} catch (final ParserConfigurationException | SAXException | IOException e) {
+			} catch (final ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
 				e.printStackTrace();
 			}
 		});

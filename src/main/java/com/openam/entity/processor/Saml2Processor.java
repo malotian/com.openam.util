@@ -1,15 +1,27 @@
 package com.openam.entity.processor;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,7 +37,7 @@ public class Saml2Processor {
 	@Autowired
 	protected EntityHelper helper;
 
-	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
+	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		final var id = json.get("_id").asText();
 
 		if (!json.has("metadata")) {
@@ -36,7 +48,7 @@ public class Saml2Processor {
 		final var metaData = json.get("metadata").asText();
 
 		final var saml2 = new Saml2(id);
-		
+
 		if (!metaData.contains("IDPSSODescriptor"))
 			helper.updateAuthAsPerPolicies(saml2);
 
@@ -84,8 +96,26 @@ public class Saml2Processor {
 		if (metaData.contains("SPSSODescriptor"))
 			saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
 
+		final var builderFactory = DocumentBuilderFactory.newInstance();
+		final var builder = builderFactory.newDocumentBuilder();
+		final var xmlDocument = builder.parse(new InputSource(new StringReader(metaData)));
+
+		final var xPath = XPathFactory.newInstance().newXPath();
+		final var xpathAssertionConsumerService = "//AssertionConsumerService";
+		final var nodeListAssertionConsumerService = (NodeList) xPath.compile(xpathAssertionConsumerService).evaluate(xmlDocument, XPathConstants.NODESET);
+
+		final var length = nodeListAssertionConsumerService.getLength();
+
+		final var redirectUrls = new ArrayList<>();
+		for (var i = 0; i < length; i++)
+			if (nodeListAssertionConsumerService.item(i).getNodeType() == Node.ELEMENT_NODE)
+				redirectUrls.add(nodeListAssertionConsumerService.item(i).getAttributes().getNamedItem("Location").getNodeValue());
+
+		saml2.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(",", "\"", "\"")));
+
 		if (!json.has("entityConfig"))
 			return;
+
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		if (entityConfig.contains("hosted=\"true\""))
@@ -100,7 +130,7 @@ public class Saml2Processor {
 		result.forEach(se -> {
 			try {
 				_process(se);
-			} catch (final ParserConfigurationException | SAXException | IOException e) {
+			} catch (final ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
 				e.printStackTrace();
 			}
 		});

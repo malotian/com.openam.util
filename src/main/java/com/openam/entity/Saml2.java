@@ -26,5 +26,4 @@ public class Saml2 extends Entity {
 	public boolean isSP() {
 		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
 	}
-
 }

@@ -31,6 +31,7 @@ public class Entity extends EntityID {
 	public static String SERVICE_PROVIDER = "SP";
 
 	public static String SP_IDP = "SP-IDP";
+	public static String REDIRECT_URLS = "REDIRECT-URLS";
 
 	public static Pattern patternPasswordProtectedTransportServiceCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
 	public static Pattern patternDefaultIDPAttributeMapper = Pattern.compile("com.sun.identity.saml2.plugins.DefaultIDPAttributeMapper");

@@ -10,5 +10,4 @@ public class OAuth2Client extends Entity {
 	public OAuth2Client(final String id) {
 		super(id, EntityType.OAUTH2);
 	}
-
 }

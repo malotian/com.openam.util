@@ -35,8 +35,13 @@ public class RestKontroller {
 
 	@GetMapping("/rest/local/json")
 	public ResponseEntity<?> fetchFromLocal(@RequestParam(name = "env") final String env) throws ClientProtocolException, IOException {
-		if (!kontext.file("latest.json").exists())
-			return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body("[]");
+
+		if (!kontext.file("latest.json").exists()) {
+			oam.processEntities();
+			final var result = helper.getEntitiesTable();
+			result.addAll(helper.getStatsTable());
+			RestKontroller.mapper.writeValue(kontext.file("latest.json"), result);
+		}
 
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new InputStreamResource(new FileInputStream(kontext.file("latest.json"))));
 	}

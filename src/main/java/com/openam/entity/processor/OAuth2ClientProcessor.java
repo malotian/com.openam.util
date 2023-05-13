@@ -2,7 +2,9 @@ package com.openam.entity.processor;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -60,6 +62,12 @@ public class OAuth2ClientProcessor {
 				oauth2Client.addRemarks(remarks2);
 			}
 		}
+
+		final var redirectUrls = new ArrayList<>();
+		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("redirectionUris"))
+			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
+
+		oauth2Client.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(",", "\"", "\"")));
 	}
 
 	public void process(final JsonNode oauth2Clients) {
