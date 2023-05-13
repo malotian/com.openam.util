@@ -33,7 +33,9 @@ public class WsfedProcessor {
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		final var wsfed = new Wsfed(id);
-		helper.updateAuthAsPerPolicies(wsfed);
+
+		if (!entityConfig.contains("IDPSSOConfig"))
+			helper.updateAuthAsPerPolicies(wsfed);
 
 		if (entityConfig.contains("IDPSSOConfig")) {
 			wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);

@@ -157,6 +157,7 @@ var table = new Tabulator("#openam-entities-table", {
   placeholder: "Awaiting Data, Please Load File",
   groupBy: ["TYPE"],
   movableRows: true,
+  persistence:true,
   rowClickPopup: function (e, row, onRendered) {
     return remarks(row.getData());
   },
