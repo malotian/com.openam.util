@@ -50,15 +50,14 @@ public class CircleOfTrustProcessor {
 			final var eid = EntityID.ParseProviderEntry(provider.asText());
 			typesEncountered.add(eid.getEntityType());
 			if (!Entity.has(eid)) {
-				CircleOfTrustProcessor.logger.warn("invalid entry: {} in cot: {}", eid, id);
+				CircleOfTrustProcessor.logger.warn("invalid(doesn't exist) entry: {} in cot: {}", eid, id);
 				return;
 			}
 			trustedProviders.add(eid);
 		});
 
-		if (typesEncountered.size() > 1) {
+		if (typesEncountered.size() > 1)
 			CircleOfTrustProcessor.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
-		}
 
 		final var sps = new HashSet<>(trustedProviders);
 		// collect elements that are only idps
@@ -74,14 +73,13 @@ public class CircleOfTrustProcessor {
 		cot.setSps(sps);
 
 		// we will remove first one only from lits of sps
-		if (idps.isEmpty()) {
+		if (idps.isEmpty())
 			CircleOfTrustProcessor.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
-		} else {
+		else {
 			if (idps.size() > 1) {
 				final var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
-				if (!helper.isEmpty()) {
+				if (!helper.isEmpty())
 					idps = helper;
-				}
 
 			}
 
@@ -90,7 +88,7 @@ public class CircleOfTrustProcessor {
 
 		if (idps.size() > 1) {
 			CircleOfTrustProcessor.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
-			final var remarks = MessageFormat.format("IDP(s): {0}", Util.json(idps.stream().map(EntityID::getID).toArray()));
+			final var remarks = MessageFormat.format("IDP(s): {0}, By default first will be used", Util.json(idps.stream().map(EntityID::getID).toArray()));
 			cot.addRemarks(remarks);
 		}
 
@@ -108,19 +106,23 @@ public class CircleOfTrustProcessor {
 		final var idp = Entity.get(cot.getIdp());
 
 		cot.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
-		cot.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", idp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
+		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH: {0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
+		cot.addRemarks(MessageFormat.format("EXTERNAL_AUTH: {0}, IDP: {1}", idp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 
 		cot.getSps().forEach(spID -> {
 			final var sp = Entity.get(spID);
 			sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
 			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
-				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
+				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
 			}
 			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
-				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH:{0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
+				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
+			}
+			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(idp.getAttribute(Entity.EXTERNAL_AUTH))) {
+				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
+				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 			}
 
 		});
@@ -134,14 +136,12 @@ public class CircleOfTrustProcessor {
 
 			if (entity.getClass() == Saml2.class) {
 				final var se = (Saml2) entity;
-				if (se.isIDP()) {
+				if (se.isIDP())
 					return strict ? se.isNotSP() : true;
-				}
 			} else if (entity.getClass() == Wsfed.class) {
 				final var we = (Wsfed) entity;
-				if (we.isIDP()) {
+				if (we.isIDP())
 					return strict ? we.isNotSP() : true;
-				}
 			}
 			return false;
 

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.text.MessageFormat;
 
-import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.config.RequestConfig;
@@ -53,10 +52,8 @@ public class RestKlient {
 		RestKlient.logger.info("fetchResponse: {}", fetchResponse.getStatusLine().getStatusCode());
 
 		final var statusLine = fetchResponse.getStatusLine();
-		if (statusLine.getStatusCode() != 200) {
+		if (statusLine.getStatusCode() != 200)
 			throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
-		}
-
 		return fetchResponse.getStatusLine().getStatusCode() == 200;
 	}
 
@@ -73,7 +70,7 @@ public class RestKlient {
 	}
 
 	@Loggable
-	@RetryOnFailure(attempts = 2, delay = 5000, verbose = false)
+	@RetryOnFailure(attempts = 5, delay = 5000, verbose = false)
 	public boolean login(final String loginUri) throws IOException, ClientProtocolException {
 		RestKlient.logger.info("X-OpenAM-Username: {}", getKonfiguration().getUsername());
 		RestKlient.logger.info("X-OpenAM-Password: {}", getKonfiguration().getPassword().replaceAll(".", "*"));
@@ -84,9 +81,8 @@ public class RestKlient {
 		final var loginResponse = httpClient.execute(loginRequest);
 		RestKlient.logger.info("loginResponse: {}", loginResponse.getStatusLine().getStatusCode());
 		final var statusLine = loginResponse.getStatusLine();
-		if (statusLine.getStatusCode() != 200) {
+		if (statusLine.getStatusCode() != 200)
 			throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
-		}
 
 		return loginResponse.getStatusLine().getStatusCode() == 200;
 	}

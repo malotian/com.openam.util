@@ -1,6 +1,7 @@
 package com.openam.entity.processor;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -46,53 +47,49 @@ public class Saml2Processor {
 
 				if (matcher.find()) {
 					saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
+					final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
+					saml2.addRemarks(remarks1);
+
 					saml2.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
+					final var remarks2 = MessageFormat.format("EXTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.EXTERNAL_AUTH), matcher.group(1));
+					saml2.addRemarks(remarks2);
 				}
 
 				final var attributeMappers = new ArrayList<String>();
 
-				if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find()) {
+				if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find())
 					attributeMappers.add("DefaultIDPAttributeMapper");
-				}
-				if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find()) {
+				if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find())
 					attributeMappers.add("PwCIdentityIDPAttributeMapper");
-				}
-				if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find()) {
+				if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find())
 					attributeMappers.add("PwCIdentityWSFedIDPAttributeMapper");
-				}
 
 				saml2.addAttribute(Entity.ATTRIBUTE_MAPPER, String.join(",", attributeMappers));
 
 				final var accountMappers = new ArrayList<String>();
-				if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find()) {
+				if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find())
 					accountMappers.add("DefaultIDPAccountMapper");
-				}
-				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find()) {
+				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find())
 					accountMappers.add("PwCIdentityMultipleNameIDAccountMapper");
-				}
-				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find()) {
+				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find())
 					accountMappers.add("PwCIdentityWsfedIDPAccountMapper");
-				}
 
 				saml2.addAttribute(Entity.ACCOUNT_MAPPER, String.join(",", accountMappers));
 
 			}
 
 		}
-		if (metaData.contains("SPSSODescriptor")) {
+		if (metaData.contains("SPSSODescriptor"))
 			saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
-		}
 
-		if (!json.has("entityConfig")) {
+		if (!json.has("entityConfig"))
 			return;
-		}
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
-		if (entityConfig.contains("hosted=\"true\"")) {
+		if (entityConfig.contains("hosted=\"true\""))
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
-		} else if (entityConfig.contains("hosted=\"false\"")) {
+		else if (entityConfig.contains("hosted=\"false\""))
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
-		}
 
 	}
 

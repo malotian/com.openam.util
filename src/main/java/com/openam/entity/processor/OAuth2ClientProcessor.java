@@ -1,6 +1,7 @@
 package com.openam.entity.processor;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.HashSet;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -9,12 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.openam.entity.Entity;
 import com.openam.entity.EntityHelper;
 import com.openam.entity.OAuth2Client;
+import com.openam.util.Util;
 
 @Component
 public class OAuth2ClientProcessor {
@@ -29,19 +32,32 @@ public class OAuth2ClientProcessor {
 		final var oauth2Client = new OAuth2Client(id);
 
 		final var acrs = new HashSet<String>();
-		if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues")) {
+		if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues"))
 			json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
-		}
 
 		helper.updateAuthAsPerPolicies(oauth2Client);
 
+		// remove invalid data like
+		// "defaultAcrValues": [
+		// ""
+		// ],
+		acrs.removeIf(StringUtils::isEmptyOrWhitespace);
+
 		if (!acrs.isEmpty()) {
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
+
+			final var remarks1 = MessageFormat.format("EXTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.EXTERNAL_AUTH), Util.json(acrs));
+			oauth2Client.addRemarks(remarks1);
 			if (acrs.contains("2")) {
+
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
+				final var remarks2 = MessageFormat.format("INTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.INTERNAL_AUTH), Util.json(acrs));
+				oauth2Client.addRemarks(remarks2);
 			}
 			if (acrs.contains("4") || acrs.contains("6")) {
 				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
+				final var remarks2 = MessageFormat.format("INTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.INTERNAL_AUTH), Util.json(acrs));
+				oauth2Client.addRemarks(remarks2);
 			}
 		}
 	}

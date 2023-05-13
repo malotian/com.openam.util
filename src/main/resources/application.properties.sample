@@ -1,17 +1,16 @@
 # logging level
-openam.username=
-openam.password=
+openam.url=https://example.openam.com/openam
+openam.username=test
+openam.password=test
 
-#### donot change below this ####
-openam.url-prod=https://prod-env.com/openam
-openam.url-stage=https://stage-env.com/openam
-
-logging.level.com.openam=DEBUG
+logging.level.org.springframework=ERROR
+logging.level.com.pwc=DEBUG
 
 # output to a file
-logging.file.path=.
-logging.file.name=com.openam.util.log
+logging.file=app.log
 
+# temp folder example
+#logging.file=${java.io.tmpdir}/app.log
 
 logging.pattern.file=%d %p %c{1.} [%t] %m%n
 
@@ -21,6 +20,4 @@ logging.pattern.console=%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
 ##spring.profiles.active=prod
 
 # root level
-logging.level.root=WARN
-logging.level.org.springframework.web=INFO
-logging.level.org.apache.http==INFO
+#logging.level.=INFO

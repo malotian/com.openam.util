@@ -1,8 +1,8 @@
 package com.openam.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
-import org.thymeleaf.util.StringUtils;
 
 @PropertySource("classpath:application.properties")
 @ConfigurationProperties("openam")
@@ -16,14 +16,16 @@ public class Konfiguration {
 
 	protected String username;
 
+	@Autowired
+	Kontext kontext;
+
 	public String getPassword() {
 		return password;
 	}
 
 	public String getUrl() {
-		if (!StringUtils.isEmptyOrWhitespace(System.getProperty("use.openam.prod.env")) && "true".equalsIgnoreCase(System.getProperty("use.openam.prod.env"))) {
+		if (kontext.isSetToProd())
 			return urlProd;
-		}
 		return urlStage;
 	}
 

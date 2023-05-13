@@ -136,7 +136,10 @@ public class EntityHelper {
 			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.EXTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
 		} else if (getResourcesForInternalOnlyPolicies().contains(entity)) {
+			final var policies = getInternalOnlyPoliciesApplicable(entity);
 			entity.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
+			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.EXTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
+			entity.addRemarks(remarks);
 		} else {
 			entity.addAttribute(Entity.EXTERNAL_AUTH, "PWD");
 			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: None", entity.getAttribute(Entity.EXTERNAL_AUTH));
