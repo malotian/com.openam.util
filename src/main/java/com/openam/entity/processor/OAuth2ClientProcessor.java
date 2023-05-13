@@ -63,7 +63,7 @@ public class OAuth2ClientProcessor {
 			}
 		}
 
-		final var redirectUrls = new ArrayList<>();
+		final var redirectUrls = new ArrayList<String>();
 		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("redirectionUris"))
 			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
 

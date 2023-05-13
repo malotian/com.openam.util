@@ -36,6 +36,10 @@ var columnDefs = [{
     field: "COT",
   },
   {
+    title: "REDIRECT-URLS",
+    field: "REDIRECT-URLS",
+  },  
+  {
     title: "ACCOUNT-MAPPER",
     field: "ACCOUNT-MAPPER"
   },
@@ -157,7 +161,7 @@ var table = new Tabulator("#openam-entities-table", {
   placeholder: "Awaiting Data, Please Load File",
   groupBy: ["TYPE"],
   movableRows: true,
-  persistence:true,
+  persistence:false,
   rowClickPopup: function (e, row, onRendered) {
     return remarks(row.getData());
   },
