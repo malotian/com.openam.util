@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.openam.entity.Entity;
 import com.openam.entity.EntityHelper;
 import com.openam.entity.Wsfed;
+import com.openam.util.Util;
 
 @Component
 public class WsfedProcessor {
@@ -92,7 +93,21 @@ public class WsfedProcessor {
 		for (var i = 0; i < nodeListAddress.getLength(); i++)
 			if (nodeListAddress.item(i).getNodeType() == Node.ELEMENT_NODE)
 				redirectUrls.add(nodeListAddress.item(i).getTextContent());
-		wsfed.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(", ")));
+		wsfed.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
+
+		final var builder2 = builderFactory.newDocumentBuilder();
+		final var xmlDocument2 = builder2.parse(new InputSource(new StringReader(entityConfig)));
+
+		final var xPath2 = XPathFactory.newInstance().newXPath();
+		final var xpathAttributeMap = "//Attribute[@name='attributeMap']/Value";
+		final var nodeListAttributeMap = (NodeList) xPath2.compile(xpathAttributeMap).evaluate(xmlDocument2, XPathConstants.NODESET);
+
+		final var attributesMap = new ArrayList<String>();
+		for (var i = 0; i < nodeListAttributeMap.getLength(); i++)
+			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE)
+				attributesMap.add(nodeListAttributeMap.item(i).getTextContent());
+
+		wsfed.addAttribute(Entity.CLAIMS, Util.json(attributesMap));
 
 	}
 

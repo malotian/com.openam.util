@@ -37,7 +37,10 @@ var columnDefs = [{
 	title: "COT",
 	field: "COT",
 },
-
+{
+	title: "CLAIMS",
+	field: "CLAIMS",
+},
 {
 	title: "ACCOUNT-MAPPER",
 	field: "ACCOUNT-MAPPER",

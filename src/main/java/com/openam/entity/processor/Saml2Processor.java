@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -25,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.openam.entity.Entity;
 import com.openam.entity.EntityHelper;
 import com.openam.entity.Saml2;
+import com.openam.util.Util;
 
 @Component
 public class Saml2Processor {
@@ -101,20 +101,32 @@ public class Saml2Processor {
 		final var xpathAssertionConsumerService = "//AssertionConsumerService";
 		final var nodeListAssertionConsumerService = (NodeList) xPath.compile(xpathAssertionConsumerService).evaluate(xmlDocument, XPathConstants.NODESET);
 
-		final var length = nodeListAssertionConsumerService.getLength();
-
 		final var redirectUrls = new ArrayList<String>();
 
-		for (var i = 0; i < length; i++)
+		for (var i = 0; i < nodeListAssertionConsumerService.getLength(); i++)
 			if (nodeListAssertionConsumerService.item(i).getNodeType() == Node.ELEMENT_NODE)
 				redirectUrls.add(nodeListAssertionConsumerService.item(i).getAttributes().getNamedItem("Location").getNodeValue());
 
-		saml2.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(", ")));
+		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
 		if (!json.has("entityConfig"))
 			return;
 
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
+
+		final var builder2 = builderFactory.newDocumentBuilder();
+		final var xmlDocument2 = builder2.parse(new InputSource(new StringReader(entityConfig)));
+
+		final var xPath2 = XPathFactory.newInstance().newXPath();
+		final var xpathAttributeMap = "//Attribute[@name='attributeMap']/Value";
+		final var nodeListAttributeMap = (NodeList) xPath2.compile(xpathAttributeMap).evaluate(xmlDocument2, XPathConstants.NODESET);
+
+		final var attributesMap = new ArrayList<String>();
+		for (var i = 0; i < nodeListAttributeMap.getLength(); i++)
+			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE)
+				attributesMap.add(nodeListAttributeMap.item(i).getTextContent());
+
+		saml2.addAttribute(Entity.CLAIMS, Util.json(attributesMap));
 
 		if (entityConfig.contains("hosted=\"true\""))
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
