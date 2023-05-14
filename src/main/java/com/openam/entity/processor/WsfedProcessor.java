@@ -3,7 +3,6 @@ package com.openam.entity.processor;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -102,12 +101,12 @@ public class WsfedProcessor {
 		final var xpathAttributeMap = "//Attribute[@name='attributeMap']/Value";
 		final var nodeListAttributeMap = (NodeList) xPath2.compile(xpathAttributeMap).evaluate(xmlDocument2, XPathConstants.NODESET);
 
-		final var attributesMap = new ArrayList<String>();
+		final var claims = new ArrayList<String>();
 		for (var i = 0; i < nodeListAttributeMap.getLength(); i++)
 			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE)
-				attributesMap.add(nodeListAttributeMap.item(i).getTextContent());
+				claims.add(nodeListAttributeMap.item(i).getTextContent());
 
-		wsfed.addAttribute(Entity.CLAIMS, Util.json(attributesMap));
+		wsfed.addAttribute(Entity.CLAIMS, Util.json(claims));
 
 	}
 
