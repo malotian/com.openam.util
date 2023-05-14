@@ -16,11 +16,17 @@ public class Konfiguration {
 
 	protected String username;
 
+	protected String tableColumns;
+
 	@Autowired
 	Kontext kontext;
 
 	public String getPassword() {
 		return password;
+	}
+
+	public String getTableColumns() {
+		return tableColumns;
 	}
 
 	public String getUrl() {
@@ -43,6 +49,10 @@ public class Konfiguration {
 
 	public void setPassword(final String password) {
 		this.password = password;
+	}
+
+	public void setTableColumns(final String tableColumns) {
+		this.tableColumns = tableColumns;
 	}
 
 	public void setUrlProd(final String urlProd) {

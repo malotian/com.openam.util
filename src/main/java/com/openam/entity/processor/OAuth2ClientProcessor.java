@@ -67,7 +67,7 @@ public class OAuth2ClientProcessor {
 		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("redirectionUris"))
 			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
 
-		oauth2Client.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(",", "\"", "\"")));
+		oauth2Client.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(", ")));
 	}
 
 	public void process(final JsonNode oauth2Clients) {

@@ -2,9 +2,12 @@ package com.openam.util;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.ClientProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.io.InputStreamResource;
@@ -13,12 +16,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @EnableConfigurationProperties(value = Konfiguration.class)
 public class RestKontroller {
+
+	static final Logger logger = LoggerFactory.getLogger(RestKontroller.class);
 
 	public static Pattern patternPROD = Pattern.compile("prd|prod|production");
 
@@ -29,6 +35,9 @@ public class RestKontroller {
 
 	@Autowired
 	private Kontext kontext;
+
+	@Autowired
+	private Konfiguration konfiguration;
 
 	@Autowired
 	protected RestHelper helper;
@@ -56,9 +65,15 @@ public class RestKontroller {
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
-	@GetMapping("/openam/test")
+	@GetMapping("/rest/table/column/visible")
+	public ResponseEntity<?> fetchTableColumnsVisibility() {
+		RestKontroller.logger.debug(konfiguration.getTableColumns());
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(List.of(StringUtils.split(konfiguration.getTableColumns(), ",")));
+	}
+
+	@GetMapping("/rest/test")
 	public ResponseEntity<String> test() {
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(oam.getKonfiguration().getUsername());
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(oam.getKonfiguration().getTableColumns());
 
 	}
 }

@@ -109,7 +109,7 @@ public class Saml2Processor {
 			if (nodeListAssertionConsumerService.item(i).getNodeType() == Node.ELEMENT_NODE)
 				redirectUrls.add(nodeListAssertionConsumerService.item(i).getAttributes().getNamedItem("Location").getNodeValue());
 
-		saml2.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(",", "\"", "\"")));
+		saml2.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(", ")));
 
 		if (!json.has("entityConfig"))
 			return;

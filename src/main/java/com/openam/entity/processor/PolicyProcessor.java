@@ -25,7 +25,9 @@ public class PolicyProcessor {
 		if (!Policy.patternInternalOnlyPolicies.matcher(policyname).find() && !Policy.patternInternalMFAPolicies.matcher(policyname).find()
 				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find() && !Policy.patternInternalCERTPolicies.matcher(policyname).find())
 			return;
+
 		final var policy = new Policy(policyname);
+
 		if (!json.has("resources")) {
 			PolicyProcessor.logger.warn("skipping, resources missing for policy: {} ", json.get("_id").asText());
 			return;

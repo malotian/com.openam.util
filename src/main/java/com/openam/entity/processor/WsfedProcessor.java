@@ -92,7 +92,7 @@ public class WsfedProcessor {
 		for (var i = 0; i < nodeListAddress.getLength(); i++)
 			if (nodeListAddress.item(i).getNodeType() == Node.ELEMENT_NODE)
 				redirectUrls.add(nodeListAddress.item(i).getTextContent());
-		wsfed.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(",", "\"", "\"")));
+		wsfed.addAttribute(Entity.REDIRECT_URLS, redirectUrls.stream().collect(Collectors.joining(", ")));
 
 	}
 

@@ -24,3 +24,6 @@ logging.pattern.console=%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
 logging.level.root=WARN
 logging.level.org.springframework.web=INFO
 logging.level.org.apache.http==INFO
+
+#ID,TYPE,INTERNAL-AUTH,EXTERNAL-AUTH,ASSIGNED-IDP,SP-IDP,COT,REDIRECT-URLS,ACCOUNT-MAPPER,ATTRIBUTE-MAPPER,HOSTED-REMOTE
+openam.table.columns-visible=ID,TYPE,INTERNAL-AUTH,EXTERNAL-AUTH,ASSIGNED-IDP,SP-IDP,COT,REDIRECT-URLS,ACCOUNT-MAPPER,ATTRIBUTE-MAPPER,HOSTED-REMOTE
