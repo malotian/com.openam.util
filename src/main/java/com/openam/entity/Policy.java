@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 public class Policy extends Entity {
 
 	private static final Logger logger = LoggerFactory.getLogger(Policy.class);
-	public static Pattern patternExternalMFAPolicies = Pattern.compile("External User MFA|SAML/WS-Fed/OAuth External MFA|ExternalUsersTrustedDevice");
-	public static Pattern patternInternalCERTPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal CERT");
-	public static Pattern patternInternalMFAPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal MFA|InternalUsersTrustedDevice");
-	public static Pattern patternInternalOnlyPolicies = Pattern.compile("Internal_Only_Restriction|Internal_only");
-
+	public static Pattern patternExternalMFAPolicies = Pattern.compile("External User MFA|SAML/WS-Fed/OAuth External MFA|ExternalUsersTrustedDevice", Pattern.CASE_INSENSITIVE);
+	public static Pattern patternInternalCERTPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal CERT", Pattern.CASE_INSENSITIVE);
+	public static Pattern patternInternalMFAPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal MFA|InternalUsersTrustedDevice", Pattern.CASE_INSENSITIVE);
+	public static Pattern patternInternalOnlyPolicies = Pattern.compile("Internal_Only_Restriction|Internal_only", Pattern.CASE_INSENSITIVE);
+	public static Pattern patternClientFedPolicies = Pattern.compile("PwCIDClientFed", Pattern.CASE_INSENSITIVE);
 	private Set<EntityID> resources = new HashSet<>();
 
 	public Policy(final String id) {

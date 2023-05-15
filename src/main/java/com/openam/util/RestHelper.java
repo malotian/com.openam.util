@@ -7,13 +7,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.openam.entity.Entity;
+import com.openam.entity.EntityHelper;
 import com.openam.entity.EntityType;
+import com.openam.entity.Policy;
 
 @Component
 public class RestHelper {
+
+	@Autowired
+	EntityHelper entityHelper;
 
 	public Stream<Entity> getAppEntititesOnly() {
 		return Entity.getAllEntities().values().stream()
@@ -108,6 +114,13 @@ public class RestHelper {
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
+
+		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream()
+				.filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && "true".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
+
+		result.put("COUNT_CLIENTFED__NOT_ACTIVE", entityHelper.getPolicies().stream()
+				.filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && "false".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
+
 		return result;
 	}
 
