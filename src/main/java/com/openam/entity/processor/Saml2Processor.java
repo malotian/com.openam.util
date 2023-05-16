@@ -46,8 +46,9 @@ public class Saml2Processor {
 
 		final var saml2 = new Saml2(id);
 
-		if (!metaData.contains("IDPSSODescriptor"))
+		if (!metaData.contains("IDPSSODescriptor")) {
 			helper.updateAuthAsPerPolicies(saml2);
+		}
 
 		if (metaData.contains("IDPSSODescriptor")) {
 			saml2.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
@@ -68,30 +69,37 @@ public class Saml2Processor {
 
 				final var attributeMappers = new ArrayList<String>();
 
-				if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find())
+				if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find()) {
 					attributeMappers.add("DefaultIDPAttributeMapper");
-				if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find())
+				}
+				if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find()) {
 					attributeMappers.add("PwCIdentityIDPAttributeMapper");
-				if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find())
+				}
+				if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find()) {
 					attributeMappers.add("PwCIdentityWSFedIDPAttributeMapper");
+				}
 
 				saml2.addAttribute(Entity.ATTRIBUTE_MAPPER, String.join(",", attributeMappers));
 
 				final var accountMappers = new ArrayList<String>();
-				if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find())
+				if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find()) {
 					accountMappers.add("DefaultIDPAccountMapper");
-				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find())
+				}
+				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find()) {
 					accountMappers.add("PwCIdentityMultipleNameIDAccountMapper");
-				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find())
+				}
+				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find()) {
 					accountMappers.add("PwCIdentityWsfedIDPAccountMapper");
+				}
 
 				saml2.addAttribute(Entity.ACCOUNT_MAPPER, String.join(",", accountMappers));
 
 			}
 
 		}
-		if (metaData.contains("SPSSODescriptor"))
+		if (metaData.contains("SPSSODescriptor")) {
 			saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
+		}
 
 		final var builderFactory = DocumentBuilderFactory.newInstance();
 		final var builder = builderFactory.newDocumentBuilder();
@@ -103,14 +111,17 @@ public class Saml2Processor {
 
 		final var redirectUrls = new ArrayList<String>();
 
-		for (var i = 0; i < nodeListAssertionConsumerService.getLength(); i++)
-			if (nodeListAssertionConsumerService.item(i).getNodeType() == Node.ELEMENT_NODE)
+		for (var i = 0; i < nodeListAssertionConsumerService.getLength(); i++) {
+			if (nodeListAssertionConsumerService.item(i).getNodeType() == Node.ELEMENT_NODE) {
 				redirectUrls.add(nodeListAssertionConsumerService.item(i).getAttributes().getNamedItem("Location").getNodeValue());
+			}
+		}
 
 		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
-		if (!json.has("entityConfig"))
+		if (!json.has("entityConfig")) {
 			return;
+		}
 
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
@@ -122,16 +133,19 @@ public class Saml2Processor {
 		final var nodeListAttributeMap = (NodeList) xPath2.compile(xpathAttributeMap).evaluate(xmlDocument2, XPathConstants.NODESET);
 
 		final var claims = new ArrayList<String>();
-		for (var i = 0; i < nodeListAttributeMap.getLength(); i++)
-			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE)
+		for (var i = 0; i < nodeListAttributeMap.getLength(); i++) {
+			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE) {
 				claims.add(nodeListAttributeMap.item(i).getTextContent());
+			}
+		}
 
 		saml2.addAttribute(Entity.CLAIMS, Util.json(claims));
 
-		if (entityConfig.contains("hosted=\"true\""))
+		if (entityConfig.contains("hosted=\"true\"")) {
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
-		else if (entityConfig.contains("hosted=\"false\""))
+		} else if (entityConfig.contains("hosted=\"false\"")) {
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
+		}
 
 	}
 

@@ -2,12 +2,10 @@ package com.openam.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.PropertySource;
 
 @PropertySource("classpath:application.properties")
 @ConfigurationProperties("openam")
-@RefreshScope
 public class Konfiguration {
 
 	protected String password;
@@ -32,8 +30,9 @@ public class Konfiguration {
 	}
 
 	public String getUrl() {
-		if (kontext.isSetToProd())
+		if (kontext.isSetToProd()) {
 			return urlProd;
+		}
 		return urlStage;
 	}
 

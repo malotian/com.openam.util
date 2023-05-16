@@ -7,7 +7,7 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isIDP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.IDENTITY_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).contains(Entity.IDENTITY_PROVIDER);
 	}
 
 	public boolean isNotIDP() {
@@ -19,6 +19,6 @@ public class Wsfed extends Entity {
 	}
 
 	public boolean isSP() {
-		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER);
+		return hasAttribute(Entity.SP_IDP) && getAttribute(Entity.SP_IDP).contains(Entity.SERVICE_PROVIDER);
 	}
 }

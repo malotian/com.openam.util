@@ -77,8 +77,9 @@ public class Entity extends EntityID {
 
 	public void addRemarks(final String value) {
 		var helper = value;
-		if (attributes.containsKey(Entity.REMARKS))
+		if (attributes.containsKey(Entity.REMARKS)) {
 			helper = attributes.get(Entity.REMARKS) + "#" + value;
+		}
 		attributes.put(Entity.REMARKS, helper);
 	}
 

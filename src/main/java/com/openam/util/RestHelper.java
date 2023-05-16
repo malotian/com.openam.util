@@ -118,7 +118,7 @@ public class RestHelper {
 		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream()
 				.filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && "true".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
 
-		result.put("COUNT_CLIENTFED__NOT_ACTIVE", entityHelper.getPolicies().stream()
+		result.put("COUNT_CLIENTFED_NOT_ACTIVE", entityHelper.getPolicies().stream()
 				.filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && "false".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
 
 		return result;

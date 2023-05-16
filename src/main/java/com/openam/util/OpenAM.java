@@ -92,8 +92,9 @@ public class OpenAM {
 	}
 
 	boolean loginAndFetchEntities() throws ClientProtocolException, IOException {
-		if (!login())
+		if (!login()) {
 			return false;
+		}
 		return fetchWs() && fetchOAuth2() && fetchPolicies() && fetchCircleOfTrust() && fetchSaml2();
 	}
 

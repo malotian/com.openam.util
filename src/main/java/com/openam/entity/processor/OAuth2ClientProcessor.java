@@ -33,8 +33,9 @@ public class OAuth2ClientProcessor {
 		final var oauth2Client = new OAuth2Client(id);
 
 		final var acrs = new HashSet<String>();
-		if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues"))
+		if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues")) {
 			json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
+		}
 
 		helper.updateAuthAsPerPolicies(oauth2Client);
 
@@ -63,14 +64,16 @@ public class OAuth2ClientProcessor {
 		}
 
 		final var redirectUrls = new ArrayList<String>();
-		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("redirectionUris"))
+		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("redirectionUris")) {
 			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
+		}
 
 		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
 		final var claims = new ArrayList<String>();
-		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("scopes"))
+		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("scopes")) {
 			json.get("coreOAuth2ClientConfig").get("scopes").forEach(s -> claims.add(s.asText()));
+		}
 
 		oauth2Client.addAttribute(Entity.CLAIMS, Util.json(claims));
 

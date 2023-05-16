@@ -27,15 +27,17 @@ public class PolicyProcessor {
 
 		if (!Policy.patternInternalOnlyPolicies.matcher(policyname).find() && !Policy.patternInternalMFAPolicies.matcher(policyname).find()
 				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find() && !Policy.patternInternalCERTPolicies.matcher(policyname).find()
-				&& !Policy.patternClientFedPolicies.matcher(policyname).find())
+				&& !Policy.patternClientFedPolicies.matcher(policyname).find()) {
 			return;
+		}
 
 		final var policy = new Policy(policyname);
 
 		policy.addAttribute(Entity.ACTIVE, json.get("active").asText());
 
-		if (Policy.patternClientFedPolicies.matcher(policyname).find())
+		if (Policy.patternClientFedPolicies.matcher(policyname).find()) {
 			PolicyProcessor.logger.debug("Policy: {}, active: {}, total: {}", policyname, json.get("active").asText(), ++clientfed);
+		}
 
 		if (!json.has("resources")) {
 			PolicyProcessor.logger.warn("skipping, resources missing for policy: {} ", json.get("_id").asText());

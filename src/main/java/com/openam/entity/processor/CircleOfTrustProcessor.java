@@ -56,8 +56,9 @@ public class CircleOfTrustProcessor {
 			trustedProviders.add(eid);
 		});
 
-		if (typesEncountered.size() > 1)
+		if (typesEncountered.size() > 1) {
 			CircleOfTrustProcessor.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
+		}
 
 		final var sps = new HashSet<>(trustedProviders);
 		// collect elements that are only idps
@@ -73,13 +74,14 @@ public class CircleOfTrustProcessor {
 		cot.setSps(sps);
 
 		// we will remove first one only from lits of sps
-		if (idps.isEmpty())
+		if (idps.isEmpty()) {
 			CircleOfTrustProcessor.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
-		else {
+		} else {
 			if (idps.size() > 1) {
 				final var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
-				if (!helper.isEmpty())
+				if (!helper.isEmpty()) {
 					idps = helper;
+				}
 
 			}
 
@@ -136,12 +138,14 @@ public class CircleOfTrustProcessor {
 
 			if (entity.getClass() == Saml2.class) {
 				final var se = (Saml2) entity;
-				if (se.isIDP())
+				if (se.isIDP()) {
 					return strict ? se.isNotSP() : true;
+				}
 			} else if (entity.getClass() == Wsfed.class) {
 				final var we = (Wsfed) entity;
-				if (we.isIDP())
+				if (we.isIDP()) {
 					return strict ? we.isNotSP() : true;
+				}
 			}
 			return false;
 

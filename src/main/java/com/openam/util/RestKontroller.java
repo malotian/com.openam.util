@@ -72,8 +72,9 @@ public class RestKontroller {
 	}
 
 	@GetMapping("/rest/test")
-	public ResponseEntity<String> test() {
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(oam.getKonfiguration().getTableColumns());
+	public ResponseEntity<?> test() throws ClientProtocolException, IOException {
+		oam.processEntities();
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(helper.getAppEntititesOnly());
 
 	}
 }

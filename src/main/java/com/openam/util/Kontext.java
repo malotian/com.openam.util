@@ -33,8 +33,9 @@ public class Kontext {
 	public void initilize(final String environment) throws IOException {
 		useProd = !StringUtils.isEmptyOrWhitespace(environment) && Kontext.patternPROD.matcher(environment.toLowerCase()).find();
 
-		if (!Files.exists(Paths.get(getEnvironment())))
+		if (!Files.exists(Paths.get(getEnvironment()))) {
 			Files.createDirectories(Paths.get(getEnvironment()));
+		}
 	}
 
 	boolean isSetToProd() {

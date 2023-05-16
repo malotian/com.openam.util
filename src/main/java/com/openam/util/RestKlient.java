@@ -52,8 +52,9 @@ public class RestKlient {
 		RestKlient.logger.info("fetchResponse: {}", fetchResponse.getStatusLine().getStatusCode());
 
 		final var statusLine = fetchResponse.getStatusLine();
-		if (statusLine.getStatusCode() != 200)
+		if (statusLine.getStatusCode() != 200) {
 			throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
+		}
 		return fetchResponse.getStatusLine().getStatusCode() == 200;
 	}
 
@@ -81,8 +82,9 @@ public class RestKlient {
 		final var loginResponse = httpClient.execute(loginRequest);
 		RestKlient.logger.info("loginResponse: {}", loginResponse.getStatusLine().getStatusCode());
 		final var statusLine = loginResponse.getStatusLine();
-		if (statusLine.getStatusCode() != 200)
+		if (statusLine.getStatusCode() != 200) {
 			throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
+		}
 
 		return loginResponse.getStatusLine().getStatusCode() == 200;
 	}

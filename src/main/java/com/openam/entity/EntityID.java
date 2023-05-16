@@ -16,23 +16,29 @@ public class EntityID {
 	public static EntityID ParseProviderEntry(final String provider) {
 		final var id = provider.replace("|saml2", "").replace("|wsfed", "").replace("|oauth", "");
 		// logger.debug("#{}#", provider);
-		if (provider.endsWith("saml2"))
+		if (provider.endsWith("saml2")) {
 			return new EntityID(id, EntityType.SAML2);
-		if (provider.endsWith("wsfed"))
+		}
+		if (provider.endsWith("wsfed")) {
 			return new EntityID(id, EntityType.WSFED);
-		if (provider.endsWith("oauth"))
+		}
+		if (provider.endsWith("oauth")) {
 			return new EntityID(id, EntityType.OAUTH2);
+		}
 		return new EntityID(provider, EntityType.UNKNOWN);
 	}
 
 	public static EntityID ParseResourceEntry(final String resource) {
 		final var id = resource.split("\\|")[0].replace("saml-", "").replace("wsfed-", "").replace("oauth-", "");
-		if (resource.startsWith("saml"))
+		if (resource.startsWith("saml")) {
 			return new EntityID(id, EntityType.SAML2);
-		if (resource.startsWith("wsfed"))
+		}
+		if (resource.startsWith("wsfed")) {
 			return new EntityID(id, EntityType.WSFED);
-		if (resource.startsWith("oauth"))
+		}
+		if (resource.startsWith("oauth")) {
 			return new EntityID(id, EntityType.OAUTH2);
+		}
 		return new EntityID(resource, EntityType.UNKNOWN);
 	}
 
@@ -47,8 +53,9 @@ public class EntityID {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
+		}
 		final var that = (EntityID) o;
 		return entityType.equals(that.entityType) && id.equals(that.id);
 	}

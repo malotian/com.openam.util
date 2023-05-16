@@ -36,47 +36,57 @@ public class WsfedProcessor {
 	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		final var id = json.get("_id").asText();
 
-		if (!json.has("entityConfig"))
+		if (!json.has("entityConfig")) {
 			return;
+		}
 
 		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
 
 		final var wsfed = new Wsfed(id);
 
-		if (!entityConfig.contains("IDPSSOConfig"))
+		if (!entityConfig.contains("IDPSSOConfig")) {
 			helper.updateAuthAsPerPolicies(wsfed);
+		}
 
 		if (entityConfig.contains("IDPSSOConfig")) {
 			wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
 			final var attributeMappers = new ArrayList<String>();
 
-			if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find())
+			if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find()) {
 				attributeMappers.add("DefaultIDPAttributeMapper");
-			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find())
+			}
+			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find()) {
 				attributeMappers.add("PwCIdentityIDPAttributeMapper");
-			if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find())
+			}
+			if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find()) {
 				attributeMappers.add("PwCIdentityWSFedIDPAttributeMapper");
+			}
 
 			wsfed.addAttribute(Entity.ATTRIBUTE_MAPPER, String.join(",", attributeMappers));
 
 			final var accountMappers = new ArrayList<String>();
-			if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find())
+			if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find()) {
 				accountMappers.add("DefaultIDPAccountMapper");
-			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find())
+			}
+			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find()) {
 				accountMappers.add("PwCIdentityMultipleNameIDAccountMapper");
-			if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find())
+			}
+			if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find()) {
 				accountMappers.add("PwCIdentityWsfedIDPAccountMapper");
+			}
 
 			wsfed.addAttribute(Entity.ACCOUNT_MAPPER, String.join(",", accountMappers));
 		}
 
-		if (entityConfig.contains("SPSSOConfig"))
+		if (entityConfig.contains("SPSSOConfig")) {
 			wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
+		}
 
-		if (entityConfig.contains("hosted=\"true\""))
+		if (entityConfig.contains("hosted=\"true\"")) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
-		else if (entityConfig.contains("hosted=\"false\""))
+		} else if (entityConfig.contains("hosted=\"false\"")) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
+		}
 
 		final var metaData = json.get("metadata").asText();
 		final var builderFactory = DocumentBuilderFactory.newInstance();
@@ -89,9 +99,11 @@ public class WsfedProcessor {
 
 		final var redirectUrls = new ArrayList<String>();
 
-		for (var i = 0; i < nodeListAddress.getLength(); i++)
-			if (nodeListAddress.item(i).getNodeType() == Node.ELEMENT_NODE)
+		for (var i = 0; i < nodeListAddress.getLength(); i++) {
+			if (nodeListAddress.item(i).getNodeType() == Node.ELEMENT_NODE) {
 				redirectUrls.add(nodeListAddress.item(i).getTextContent());
+			}
+		}
 		wsfed.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
 		final var builder2 = builderFactory.newDocumentBuilder();
@@ -102,9 +114,11 @@ public class WsfedProcessor {
 		final var nodeListAttributeMap = (NodeList) xPath2.compile(xpathAttributeMap).evaluate(xmlDocument2, XPathConstants.NODESET);
 
 		final var claims = new ArrayList<String>();
-		for (var i = 0; i < nodeListAttributeMap.getLength(); i++)
-			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE)
+		for (var i = 0; i < nodeListAttributeMap.getLength(); i++) {
+			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE) {
 				claims.add(nodeListAttributeMap.item(i).getTextContent());
+			}
+		}
 
 		wsfed.addAttribute(Entity.CLAIMS, Util.json(claims));
 
