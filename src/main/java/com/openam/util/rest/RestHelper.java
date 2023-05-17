@@ -22,22 +22,10 @@ public class RestHelper {
 	EntityHelper entityHelper;
 
 	public Stream<Entity> getAppEntititesOnly() {
-		return Entity.getAllEntities().values().stream().filter(v -> ((EntityType.SAML2.equals(v.getEntityType())
-				|| EntityType.WSFED.equals(v.getEntityType()) || EntityType.OAUTH2.equals(v.getEntityType()))
-				&& (!v.hasAttribute(Entity.HOSTED_REMOTE) || v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE))
-				&& (!v.hasAttribute(Entity.SP_IDP) || v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))));
-	}
-
-	public Set<Map<String, String>> getEntitiesTable2() {
-		return getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType())
-				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).map(v -> {
-					final var copy = new HashMap<String, String>();
-					copy.put("ID", v.getID());
-					copy.put("TYPE", v.getEntityType().toString());
-					copy.put(Entity.HOSTED_REMOTE, v.getAttribute(Entity.HOSTED_REMOTE));
-					copy.put(Entity.SP_IDP, v.getAttribute(Entity.SP_IDP));
-					return copy;
-				}).collect(Collectors.toSet());
+		return Entity.getAllEntities().values().stream()
+				.filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType()) || EntityType.OAUTH2.equals(v.getEntityType()))
+						&& (!v.hasAttribute(Entity.HOSTED_REMOTE) || v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE))
+						&& (!v.hasAttribute(Entity.SP_IDP) || v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))));
 	}
 
 	public Set<Map<String, String>> getEntitiesTable() {
@@ -45,6 +33,17 @@ public class RestHelper {
 			final var copy = new HashMap<>(v.getAttributes());
 			copy.put("ID", v.getID());
 			copy.put("TYPE", v.getEntityType().toString());
+			return copy;
+		}).collect(Collectors.toSet());
+	}
+
+	public Set<Map<String, String>> getEntitiesTable2() {
+		return getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).map(v -> {
+			final var copy = new HashMap<String, String>();
+			copy.put("ID", v.getID());
+			copy.put("TYPE", v.getEntityType().toString());
+			copy.put(Entity.HOSTED_REMOTE, v.getAttribute(Entity.HOSTED_REMOTE));
+			copy.put(Entity.SP_IDP, v.getAttribute(Entity.SP_IDP));
 			return copy;
 		}).collect(Collectors.toSet());
 	}
@@ -66,8 +65,10 @@ public class RestHelper {
 		// remove duplicates
 
 		result.put("COUNT_OAUTH", getAppEntititesOnly().filter(v -> EntityType.OAUTH2.equals(v.getEntityType())).count());
-		result.put("COUNT_SAML", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER)) && v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
-		result.put("COUNT_WSFED", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
+		result.put("COUNT_SAML", getAppEntititesOnly().filter(v -> EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
+				&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
+		result.put("COUNT_WSFED", getAppEntititesOnly().filter(v -> EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
+				&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
 
 		final var patternCOT2031 = Pattern.compile("31|2031");
 
@@ -127,11 +128,11 @@ public class RestHelper {
 				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
-		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream()
-				.filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && "true".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
+		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) //
+				&& "true".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
 
-		result.put("COUNT_CLIENTFED_NOT_ACTIVE", entityHelper.getPolicies().stream()
-				.filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && "false".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
+		result.put("COUNT_CLIENTFED_NOT_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) //
+				&& "false".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
 
 		return result;
 	}

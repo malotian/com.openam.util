@@ -120,7 +120,7 @@ public class Saml2Processor {
 		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
 		if (!json.has("entityConfig")) {
-			
+
 			// consider by default remote, e.g. httpsperformancelink.mer.pwc.com
 			// json has missing entityConfig, but marked as remote in gui, same logic
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
