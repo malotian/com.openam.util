@@ -79,4 +79,6 @@ src/main/resources/application.properties
 /stage
 /prod
 *.log
+*.gz
+*.zip
 application.properties
