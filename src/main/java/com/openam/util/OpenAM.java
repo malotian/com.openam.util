@@ -14,11 +14,12 @@ import com.fasterxml.jackson.core.exc.StreamWriteException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.openam.entity.processor.CircleOfTrustProcessor;
-import com.openam.entity.processor.OAuth2ClientProcessor;
-import com.openam.entity.processor.PolicyProcessor;
-import com.openam.entity.processor.Saml2Processor;
-import com.openam.entity.processor.WsfedProcessor;
+import com.openam.util.entity.processor.CircleOfTrustProcessor;
+import com.openam.util.entity.processor.OAuth2ClientProcessor;
+import com.openam.util.entity.processor.PolicyProcessor;
+import com.openam.util.entity.processor.Saml2Processor;
+import com.openam.util.entity.processor.WsfedProcessor;
+import com.openam.util.rest.RestKlient;
 
 @Component
 @EnableConfigurationProperties(value = Konfiguration.class)
@@ -91,14 +92,14 @@ public class OpenAM {
 		return restKlient.login("/json/realms/root/authenticate?authIndexType=service&authIndexValue=ldapService");
 	}
 
-	boolean loginAndFetchEntities() throws ClientProtocolException, IOException {
+	public boolean loginAndFetchEntities() throws ClientProtocolException, IOException {
 		if (!login()) {
 			return false;
 		}
 		return fetchWs() && fetchOAuth2() && fetchPolicies() && fetchCircleOfTrust() && fetchSaml2();
 	}
 
-	void processEntities() throws ClientProtocolException, IOException {
+	public void processEntities() throws ClientProtocolException, IOException {
 
 		final var jsonPolicies = getMapper().readValue(kontext.file("jsonPolicies.json"), JsonNode.class);
 		policyProcessor.process(jsonPolicies);

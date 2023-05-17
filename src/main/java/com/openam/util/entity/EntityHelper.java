@@ -1,4 +1,4 @@
-package com.openam.entity;
+package com.openam.util.entity;
 
 import java.text.MessageFormat;
 import java.util.HashSet;

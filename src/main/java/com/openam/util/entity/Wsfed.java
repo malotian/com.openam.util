@@ -1,14 +1,9 @@
-package com.openam.entity;
+package com.openam.util.entity;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class Wsfed extends Entity {
 
-public class Saml2 extends Entity {
-
-	static final Logger logger = LoggerFactory.getLogger(Saml2.class);
-
-	public Saml2(final String id) {
-		super(id, EntityType.SAML2);
+	public Wsfed(final String id) {
+		super(id, EntityType.WSFED);
 	}
 
 	public boolean isIDP() {

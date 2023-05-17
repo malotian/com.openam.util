@@ -1,4 +1,4 @@
-package com.openam.entity.processor;
+package com.openam.util.entity.processor;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -15,13 +15,13 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.openam.entity.CircleOfTrust;
-import com.openam.entity.Entity;
-import com.openam.entity.EntityHelper;
-import com.openam.entity.EntityID;
-import com.openam.entity.Saml2;
-import com.openam.entity.Wsfed;
 import com.openam.util.Util;
+import com.openam.util.entity.CircleOfTrust;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityHelper;
+import com.openam.util.entity.EntityID;
+import com.openam.util.entity.Saml2;
+import com.openam.util.entity.Wsfed;
 
 @Component
 public class CircleOfTrustProcessor {

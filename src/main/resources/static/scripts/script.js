@@ -4,6 +4,7 @@ var columnDefs = [{
 	formatter: "handle",
 	headerSort: false,
 	frozen: true,
+	align:"top"
 },
 {
 	title: "ID",
@@ -40,6 +41,12 @@ var columnDefs = [{
 {
 	title: "CLAIMS",
 	field: "CLAIMS",
+	formatter: function(cell, formatterParams, onRendered){
+		return cell.getValue();
+		// const jsonArray = JSON.parse(cell.getValue());
+		// const multilineString = jsonArray.join('<br>');
+		// return multilineString;
+	}	
 },
 {
 	title: "ACCOUNT-MAPPER",
@@ -56,7 +63,12 @@ var columnDefs = [{
 {
 	title: "REDIRECT-URLS",
 	field: "REDIRECT-URLS",
-	formatter: "textarea"
+	formatter: function(cell, formatterParams, onRendered){
+	 	return cell.getValue();
+		//const jsonArray = JSON.parse(cell.getValue());
+		//const multilineString = jsonArray.join('<br>');
+		//return multilineString;
+	}
 },
 {
 	title: "REMARKS",

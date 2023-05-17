@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.util.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

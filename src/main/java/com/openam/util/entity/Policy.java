@@ -1,4 +1,4 @@
-package com.openam.entity;
+package com.openam.util.entity;
 
 import java.util.HashSet;
 import java.util.Set;

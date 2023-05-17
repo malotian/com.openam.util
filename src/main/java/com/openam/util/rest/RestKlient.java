@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.util.rest;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcabi.aspects.Loggable;
 import com.jcabi.aspects.RetryOnFailure;
+import com.openam.util.Konfiguration;
+import com.openam.util.Kontext;
 
 @Component
 public class RestKlient {

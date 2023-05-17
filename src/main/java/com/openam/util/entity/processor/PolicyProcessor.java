@@ -1,4 +1,4 @@
-package com.openam.entity.processor;
+package com.openam.util.entity.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.openam.entity.Entity;
-import com.openam.entity.EntityHelper;
-import com.openam.entity.EntityID;
-import com.openam.entity.Policy;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityHelper;
+import com.openam.util.entity.EntityID;
+import com.openam.util.entity.Policy;
 
 @Component
 public class PolicyProcessor {

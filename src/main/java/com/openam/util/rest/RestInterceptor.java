@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.util.rest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.jcabi.aspects.Loggable;
-import com.openam.entity.Entity;
+import com.openam.util.Kontext;
+import com.openam.util.entity.Entity;
 
 @Component
 public class RestInterceptor implements HandlerInterceptor {

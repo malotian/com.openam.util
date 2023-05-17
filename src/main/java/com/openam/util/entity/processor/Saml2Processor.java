@@ -1,4 +1,4 @@
-package com.openam.entity.processor;
+package com.openam.util.entity.processor;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -21,10 +21,10 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.openam.entity.Entity;
-import com.openam.entity.EntityHelper;
-import com.openam.entity.Saml2;
 import com.openam.util.Util;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityHelper;
+import com.openam.util.entity.Saml2;
 
 @Component
 public class Saml2Processor {
@@ -120,6 +120,10 @@ public class Saml2Processor {
 		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
 		if (!json.has("entityConfig")) {
+			
+			// consider by default remote, e.g. httpsperformancelink.mer.pwc.com
+			// json has missing entityConfig, but marked as remote in gui, same logic
+			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
 			return;
 		}
 

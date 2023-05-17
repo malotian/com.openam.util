@@ -1,4 +1,4 @@
-package com.openam.entity.processor;
+package com.openam.util.entity.processor;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -20,10 +20,10 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.openam.entity.Entity;
-import com.openam.entity.EntityHelper;
-import com.openam.entity.Wsfed;
 import com.openam.util.Util;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityHelper;
+import com.openam.util.entity.Wsfed;
 
 @Component
 public class WsfedProcessor {

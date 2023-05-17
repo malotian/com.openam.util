@@ -1,4 +1,4 @@
-package com.openam.entity;
+package com.openam.util.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package com.openam.entity.processor;
+package com.openam.util.entity.processor;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -15,10 +15,10 @@ import org.thymeleaf.util.StringUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.openam.entity.Entity;
-import com.openam.entity.EntityHelper;
-import com.openam.entity.OAuth2Client;
 import com.openam.util.Util;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityHelper;
+import com.openam.util.entity.OAuth2Client;
 
 @Component
 public class OAuth2ClientProcessor {

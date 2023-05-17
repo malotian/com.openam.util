@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.util.rest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,10 +10,10 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.openam.entity.Entity;
-import com.openam.entity.EntityHelper;
-import com.openam.entity.EntityType;
-import com.openam.entity.Policy;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityHelper;
+import com.openam.util.entity.EntityType;
+import com.openam.util.entity.Policy;
 
 @Component
 public class RestHelper {
@@ -22,10 +22,22 @@ public class RestHelper {
 	EntityHelper entityHelper;
 
 	public Stream<Entity> getAppEntititesOnly() {
-		return Entity.getAllEntities().values().stream()
-				.filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType()) || EntityType.OAUTH2.equals(v.getEntityType()))
-						&& (!v.hasAttribute(Entity.HOSTED_REMOTE) || v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE))
-						&& (!v.hasAttribute(Entity.SP_IDP) || v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))));
+		return Entity.getAllEntities().values().stream().filter(v -> ((EntityType.SAML2.equals(v.getEntityType())
+				|| EntityType.WSFED.equals(v.getEntityType()) || EntityType.OAUTH2.equals(v.getEntityType()))
+				&& (!v.hasAttribute(Entity.HOSTED_REMOTE) || v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE))
+				&& (!v.hasAttribute(Entity.SP_IDP) || v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))));
+	}
+
+	public Set<Map<String, String>> getEntitiesTable2() {
+		return getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType())
+				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).map(v -> {
+					final var copy = new HashMap<String, String>();
+					copy.put("ID", v.getID());
+					copy.put("TYPE", v.getEntityType().toString());
+					copy.put(Entity.HOSTED_REMOTE, v.getAttribute(Entity.HOSTED_REMOTE));
+					copy.put(Entity.SP_IDP, v.getAttribute(Entity.SP_IDP));
+					return copy;
+				}).collect(Collectors.toSet());
 	}
 
 	public Set<Map<String, String>> getEntitiesTable() {
@@ -54,8 +66,8 @@ public class RestHelper {
 		// remove duplicates
 
 		result.put("COUNT_OAUTH", getAppEntititesOnly().filter(v -> EntityType.OAUTH2.equals(v.getEntityType())).count());
-		result.put("COUNT_SAML", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).count());
-		result.put("COUNT_WSFED", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).count());
+		result.put("COUNT_SAML", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER)) && v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
+		result.put("COUNT_WSFED", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
 
 		final var patternCOT2031 = Pattern.compile("31|2031");
 

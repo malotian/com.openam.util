@@ -1,4 +1,4 @@
-package com.openam.util;
+package com.openam.util.rest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.openam.util.Konfiguration;
+import com.openam.util.Kontext;
+import com.openam.util.OpenAM;
 
 @RestController
 @EnableConfigurationProperties(value = Konfiguration.class)
@@ -74,7 +77,7 @@ public class RestKontroller {
 	@GetMapping("/rest/test")
 	public ResponseEntity<?> test() throws ClientProtocolException, IOException {
 		oam.processEntities();
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(helper.getAppEntititesOnly());
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(helper.getEntitiesTable2());
 
 	}
 }
