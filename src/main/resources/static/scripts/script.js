@@ -104,17 +104,17 @@ var columnDefs = [{
 },
 {
 	title: "INT",
-	field: "INTERNAL-AUTH",
+	field: "INT",
 	widthGrow: 0.7,
 },
 {
 	title: "EXT",
-	field: "EXTERNAL-AUTH",
+	field: "EXT",
 	widthGrow: 0.7,
 },
 {
 	title: "IDP",
-	field: "ASSIGNED-IDP",
+	field: "IDP",
 	widthGrow: 1.5,
 },
 {

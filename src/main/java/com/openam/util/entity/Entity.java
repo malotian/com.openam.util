@@ -10,18 +10,18 @@ import com.jcabi.aspects.Loggable;
 
 public class Entity extends EntityID {
 
-	public static String ASSIGNED_IDP = "ASSIGNED-IDP";
+	public static String ASSIGNED_IDP = "IDP";
 	public static String AUTH_LEVEL_CERT = "CERT";
 	public static String AUTH_LEVEL_MFA = "MFA";
 	public static String COT = "COT";
 	private static HashMap<EntityID, Entity> entities = new HashMap<>();
-	public static String EXTERNAL_AUTH = "EXTERNAL-AUTH";
+	public static String EXTERNAL_AUTH = "EXT";
 	public static String HOSTED = "HOSTED";
 
 	public static String HOSTED_REMOTE = "HOSTED-REMOTE";
 	public static String IDENTITY_PROVIDER = "IDP";
 
-	public static String INTERNAL_AUTH = "INTERNAL-AUTH";
+	public static String INTERNAL_AUTH = "INT";
 	public static String REMARKS = "REMARKS";
 
 	public static String REMOTE = "REMOTE";

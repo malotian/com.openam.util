@@ -164,6 +164,15 @@
 		</dependencies>
 	</dependencyManagement>
 	<build>
+		<resources>
+			<resource>
+				<directory>${project.basedir}</directory><!-- from -->
+				<targetPath>${project.build.directory}</targetPath><!-- to -->
+				<includes><!-- what -->
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
