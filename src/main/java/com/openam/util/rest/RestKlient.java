@@ -46,7 +46,7 @@ public class RestKlient {
 	@Loggable
 	@RetryOnFailure(attempts = 5, delay = 5000, verbose = false)
 	public boolean fetch(final String uri, final File saveReponseToFile) throws ClientProtocolException, IOException, SocketTimeoutException {
-		final var fetch = new HttpGet(MessageFormat.format("{0}{1}", getKonfiguration().getUrl(), uri));
+		final var fetch = new HttpGet(MessageFormat.format("{0}{1}", getKonfiguration().getOpenamUrl(), uri));
 		RestKlient.logger.info("HttpGet: {}", fetch.getURI());
 		final var fetchResponse = httpClient.execute(fetch);
 		final var jsonResponse = getMapper().readTree(fetchResponse.getEntity().getContent());
@@ -75,12 +75,12 @@ public class RestKlient {
 	@Loggable
 	@RetryOnFailure(attempts = 5, delay = 5000, verbose = false)
 	public boolean login(final String loginUri) throws IOException, ClientProtocolException {
-		RestKlient.logger.info("X-OpenAM-Username: {}", getKonfiguration().getUsername());
-		RestKlient.logger.info("X-OpenAM-Password: {}", getKonfiguration().getPassword().replaceAll(".", "*"));
-		final var loginRequest = new HttpPost(MessageFormat.format("{0}{1}", getKonfiguration().getUrl(), loginUri));
+		RestKlient.logger.info("X-OpenAM-Username: {}", getKonfiguration().getOpenamUsername());
+		RestKlient.logger.info("X-OpenAM-Password: {}", getKonfiguration().getOpenamPassword().replaceAll(".", "*"));
+		final var loginRequest = new HttpPost(MessageFormat.format("{0}{1}", getKonfiguration().getOpenamUrl(), loginUri));
 		RestKlient.logger.info("HttpPost: {}", loginRequest.getURI());
-		loginRequest.addHeader("X-OpenAM-Username", getKonfiguration().getUsername());
-		loginRequest.addHeader("X-OpenAM-Password", getKonfiguration().getPassword());
+		loginRequest.addHeader("X-OpenAM-Username", getKonfiguration().getOpenamUsername());
+		loginRequest.addHeader("X-OpenAM-Password", getKonfiguration().getOpenamPassword());
 		final var loginResponse = httpClient.execute(loginRequest);
 		RestKlient.logger.info("loginResponse: {}", loginResponse.getStatusLine().getStatusCode());
 		final var statusLine = loginResponse.getStatusLine();

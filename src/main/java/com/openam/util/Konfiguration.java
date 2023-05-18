@@ -5,67 +5,67 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 
 @PropertySource("classpath:application.properties")
-@ConfigurationProperties("openam")
+@ConfigurationProperties("app")
 public class Konfiguration {
 
-	protected String password;
+	protected String openamPassword;
 
-	protected String urlStage;
+	protected String openamStageUrl;
 
-	protected String urlProd;
+	protected String openamProdUrl;
 
-	protected String username;
+	protected String openamUsername;
 
 	protected String tableColumns;
 
 	@Autowired
 	Kontext kontext;
 
-	public String getPassword() {
-		return password;
+	public String getOpenamPassword() {
+		return openamPassword;
 	}
 
 	public String getTableColumns() {
 		return tableColumns;
 	}
 
-	public String getUrl() {
+	public String getOpenamUrl() {
 		if (kontext.isSetToProd()) {
-			return urlProd;
+			return openamProdUrl;
 		}
-		return urlStage;
+		return openamStageUrl;
 	}
 
-	public String getUrlProd() {
-		return urlProd;
+	public String getOpenamProdUrl() {
+		return openamProdUrl;
 	}
 
-	public String getUrlStage() {
-		return urlStage;
+	public String getOpenamStageUrl() {
+		return openamStageUrl;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getOpenamUsername() {
+		return openamUsername;
 	}
 
-	public void setPassword(final String password) {
-		this.password = password;
+	public void setOpenamPassword(final String password) {
+		this.openamPassword = password;
 	}
 
 	public void setTableColumns(final String tableColumns) {
 		this.tableColumns = tableColumns;
 	}
 
-	public void setUrlProd(final String urlProd) {
-		this.urlProd = urlProd;
+	public void setOpenamProdUrl(final String urlProd) {
+		this.openamProdUrl = urlProd;
 	}
 
-	public void setUrlStage(final String urlStage) {
-		this.urlStage = urlStage;
+	public void setOpenamStageUrl(final String urlStage) {
+		this.openamStageUrl = urlStage;
 	}
 
-	public void setUsername(final String username) {
-		this.username = username;
+	public void setOpenamUsername(final String username) {
+		this.openamUsername = username;
 	}
 
 }
