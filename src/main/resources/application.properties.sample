@@ -3,8 +3,8 @@ openam.username=
 openam.password=
 
 #### donot change below this ####
-openam.url-prod=https://am01-prod-iam-us.com:8443/openam
-openam.url-stage=https://am01-stg-asia.com:8443/openam
+openam.url-prod=https://am01-prod-iam-us.pwcinternal.com:8443/openam
+openam.url-stage=https://am01-stg-asia.pwcinternal.com:8443/openam
 
 # ID,TYPE,INTERNAL-AUTH,EXTERNAL-AUTH,ASSIGNED-IDP,SP-IDP,COT,CLAIMS,REDIRECT-URLS,ACCOUNT-MAPPER,ATTRIBUTE-MAPPER,HOSTED-REMOTE
 openam.table-columns=ID,TYPE,INTERNAL-AUTH,EXTERNAL-AUTH,ASSIGNED-IDP,SP-IDP,COT,CLAIMS,REDIRECT-URLS

@@ -1,38 +1,126 @@
+//define row context menu contents
+var rowMenu = [
+	{
+		label: "<i class='fas fa-user'></i> Change Name",
+		action: function (e, row) {
+			row.update({ name: "Steve Bobberson" });
+		}
+	},
+	{
+		label: "<i class='fas fa-check-square'></i> Select Row",
+		action: function (e, row) {
+			row.select();
+		}
+	},
+	{
+		separator: true,
+	},
+	{
+		label: "Admin Functions",
+		menu: [
+			{
+				label: "<i class='fas fa-trash'></i> Delete Row",
+				action: function (e, row) {
+					row.delete();
+				}
+			},
+			{
+				label: "<i class='fas fa-ban'></i> Disabled Option",
+				disabled: true,
+			},
+		]
+	}
+]
+
+//define column header menu as column visibility toggle
+var headerMenu = function () {
+	var menu = [];
+	var columns = this.getColumns();
+
+	for (let column of columns) {
+		
+		if (true == column.getDefinition().rowHandle)
+			continue;
+
+		//create checkbox element using font awesome icons
+		let checkBox = document.createElement("input");
+		checkBox.classList.add("form-check-input");
+		checkBox.setAttribute("type", "checkbox");
+		checkBox.checked = column.isVisible();
+		
+		//build label
+		let label = document.createElement("span");
+		let title = document.createElement("span");
+
+		title.textContent = " " + column.getDefinition().title;
+
+		label.appendChild(checkBox);
+		label.appendChild(title);
+
+		//create menu item
+		menu.push({
+			label: label,
+			action: function (e) {
+				//prevent menu closing
+				e.stopPropagation();
+				column.toggle();
+				checkBox.checked = column.isVisible();
+				table.redraw();
+			}
+		});
+	}
+
+	return menu;
+};
+
 //headerFilterFunc: (headerValue, rowValue, rowData, filterParams) => { return RegExp(headerValue, 'i').test(rowValue);}
+
 var columnDefs = [{
 	rowHandle: true,
 	formatter: "handle",
 	headerSort: false,
 	frozen: true,
-	align:"top"
+	width: 5,
+	verAlign: "top",
+	formatter:"responsiveCollapse",
+
 },
 {
 	title: "ID",
 	field: "ID",
-	frozen: true
+	frozen: true,
+	widthGrow: 2,
 },
 {
 	title: "TYPE",
 	field: "TYPE",
 	frozen: true,
-	resizable: false
+	widthGrow: 0.7,
+	mutator:function(value, data){
+		if (undefined === data["SP-IDP"])
+			return data["TYPE"]
+        return data["TYPE"] +"-"+ data["SP-IDP"];
+    }
 },
 {
-	title: "INTERNAL-AUTH",
-	field: "INTERNAL-AUTH"
+	title: "INT",
+	field: "INTERNAL-AUTH",
+	widthGrow: 0.7,
 },
 {
-	title: "EXTERNAL-AUTH",
-	field: "EXTERNAL-AUTH"
+	title: "EXT",
+	field: "EXTERNAL-AUTH",
+	widthGrow: 0.7,
 },
 {
-	title: "ASSIGNED-IDP",
-	field: "ASSIGNED-IDP"
+	title: "IDP",
+	field: "ASSIGNED-IDP",
+	widthGrow: 1.5,
 },
 {
-	title: "SP-IDP",
+	title: "TYPE2",
 	field: "SP-IDP",
-	resizable: false
+	visible: false	
 },
 {
 	title: "COT",
@@ -41,12 +129,26 @@ var columnDefs = [{
 {
 	title: "CLAIMS",
 	field: "CLAIMS",
+	widthGrow: 3,
 	formatter: function(cell, formatterParams, onRendered){
-		return cell.getValue();
-		// const jsonArray = JSON.parse(cell.getValue());
-		// const multilineString = jsonArray.join('<br>');
-		// return multilineString;
-	}	
+		if (undefined == cell.getValue())
+			return "";
+		const jsonArray = JSON.parse(cell.getValue());
+		const multilineString = jsonArray.join('<br>');
+		return multilineString;
+	}
+},
+{
+	title: "REDIRECT-URLS",
+	field: "REDIRECT-URLS",
+	widthGrow: 3,
+	formatter: function(cell, formatterParams, onRendered){
+		if (undefined == cell.getValue())
+			return "";
+		const jsonArray = JSON.parse(cell.getValue());
+		const multilineString = jsonArray.join('<br>');
+		return multilineString;
+	}
 },
 {
 	title: "ACCOUNT-MAPPER",
@@ -59,16 +161,6 @@ var columnDefs = [{
 {
 	title: "HOSTED-REMOTE",
 	field: "HOSTED-REMOTE",
-},
-{
-	title: "REDIRECT-URLS",
-	field: "REDIRECT-URLS",
-	formatter: function(cell, formatterParams, onRendered){
-	 	return cell.getValue();
-		//const jsonArray = JSON.parse(cell.getValue());
-		//const multilineString = jsonArray.join('<br>');
-		//return multilineString;
-	}
 },
 {
 	title: "REMARKS",
@@ -110,7 +202,7 @@ function matchAny(data, filterParams) {
 	return match;
 }
 
-$("#freetext-filter-value").keyup(function() {
+$("#freetext-filter-value").keyup(function () {
 	table.setFilter(matchAny, {
 		value: $("#freetext-filter-value").val()
 	});
@@ -174,19 +266,21 @@ function remarks(row) {
 
 var table = new Tabulator("#openam-entities-table", {
 	height: "75vh",
-	layout: "fitDataStretch",
+	layout: "fitColumns",
 	responsiveLayout: "collapse",
+	rowContextMenu: rowMenu, //add context menu to rows
 	columns: columnDefs,
 	placeholder: "Awaiting Data, Please Load File",
 	groupBy: ["TYPE"],
 	movableRows: true,
-	rowClickPopup: function(e, row, onRendered) {
-		return remarks(row.getData());
-	},
+	//rowClickPopup: function(e, row, onRendered) {
+	//return remarks(row.getData());
+	//},
 	columnDefaults: {
 		headerFilter: "input",
 		resizable: true,
-		tooltip: function(e, row, onRendered) {
+		headerMenu: headerMenu,
+		tooltip: function (e, row, onRendered) {
 			return remarks(row.getData());
 		}
 	},
@@ -194,7 +288,7 @@ var table = new Tabulator("#openam-entities-table", {
 	footerElement: '<span class="tabulator-counter float-left">' +
 		'Showing <span id="search_count"></span> results out of <span id="total_count"></span> ' +
 		'</span>',
-	ajaxResponse: function(url, params, response) {
+	ajaxResponse: function (url, params, response) {
 		//url - the URL of the request
 		//params - the parameters passed with the request
 		//response - the JSON object returned in the body of the response.
@@ -204,40 +298,43 @@ var table = new Tabulator("#openam-entities-table", {
 	},
 });
 
+table.on("cellClick", function (e, cell) {
+	cell.popup(remarks(cell.getRow().getData()), "center");
+});
 
-table.on("dataLoaded", function(data) {
+table.on("dataLoaded", function (data) {
 	var env = $("#selected-environment").val();
 	$("#total_count").text(data.length);
 	table.redraw();
 });
 
-table.on("dataFiltered", function(filters, rows) {
+table.on("dataFiltered", function (filters, rows) {
 	$("#search_count").text(rows.length);
 });
 
 
-$("#fetch-openam-test").click(function() {
+$("#fetch-openam-test").click(function () {
 	//table.setData("/openam/json/test");
 });
 
-$("#import-csv").click(function() {
+$("#import-csv").click(function () {
 	table.import("csv", ".csv");
 });
 
-$("#fetch-local").click(function() {
+$("#fetch-local").click(function () {
 	var env = $("#selected-environment").val();
 	table.setData("/rest/local/json?env=" + env);
 });
 
-$("#fetch-openam").click(function() {
+$("#fetch-openam").click(function () {
 	var env = $("#selected-environment").val();
 	table.setData("/rest/openam/json?env=" + env);
 });
 
 // A $( document ).ready() block.
-table.on("tableBuilding", function() {
+table.on("tableBuilding", function () {
 	$.ajax({
-		url: "/rest/table/column/visible", success: function(result) {
+		url: "/rest/table/column/visible", success: function (result) {
 			table.getColumns(true).forEach((col) => {
 				if (undefined !== col.getDefinition().field) {
 					if (false === result.includes(col.getDefinition().field)) {
@@ -250,18 +347,18 @@ table.on("tableBuilding", function() {
 	});
 });
 
-table.on("dataProcessed", function() {
+table.on("dataProcessed", function () {
 	table.redraw(true);
 });
 
-$("#selected-environment").on('change', function() {
+$("#selected-environment").on('change', function () {
 	var env = $("#selected-environment").val();
 	console.log("--" + env);
 	table.setData(dataTables[env]);
 });
 
 //Clear filters on "Clear Filters" button click
-$("#filter-clear").click(function() {
+$("#filter-clear").click(function () {
 	clearFilterEx();
 });
 
@@ -277,13 +374,25 @@ function timeStamp() {
 	return localDateTime;
 }
 
-$("#export-csv").click(function() {
+$("#export-pdf").click(function () {
+	var env = $("#selected-environment").val();
+	var filName = env + "-openam-" + timeStamp() + ".pdf";
+	table.download("pdf", filName, {
+		orientation: "landscape", //set page orientation to portrait
+		title: env, //add title to report
+		unit: "in",
+		format: [595.28, 841.89]
+	});
+});
+
+
+$("#export-csv").click(function () {
 	var env = $("#selected-environment").val();
 	var filName = env + "-openam-" + timeStamp() + ".csv"
 	table.download("csv", filName);
 });
 
-$("#all-apps-only").click(function() {
+$("#all-apps-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -299,7 +408,7 @@ $("#all-apps-only").click(function() {
 
 });
 
-$("#saml-apps-only").click(function() {
+$("#saml-apps-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -314,7 +423,7 @@ $("#saml-apps-only").click(function() {
 	]);
 });
 
-$("#wsfed-apps-only").click(function() {
+$("#wsfed-apps-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -329,7 +438,7 @@ $("#wsfed-apps-only").click(function() {
 	]);
 });
 
-$("#oauth-apps-only").click(function() {
+$("#oauth-apps-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
@@ -341,7 +450,7 @@ $("#oauth-apps-only").click(function() {
 
 
 
-$("#2031-saml-wsfed-only").click(function() {
+$("#2031-saml-wsfed-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -361,7 +470,7 @@ $("#2031-saml-wsfed-only").click(function() {
 	]);
 });
 
-$("#2025-saml-wsfed-only").click(function() {
+$("#2025-saml-wsfed-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -382,7 +491,7 @@ $("#2025-saml-wsfed-only").click(function() {
 });
 
 
-$("#internal-apps-only").click(function() {
+$("#internal-apps-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -402,7 +511,7 @@ $("#internal-apps-only").click(function() {
 	]);
 });
 
-$("#saml-internal-only").click(function() {
+$("#saml-internal-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -422,7 +531,7 @@ $("#saml-internal-only").click(function() {
 	]);
 });
 
-$("#wsfed-internal-only").click(function() {
+$("#wsfed-internal-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -442,7 +551,7 @@ $("#wsfed-internal-only").click(function() {
 	]);
 });
 
-$("#oauth-internal-only").click(function() {
+$("#oauth-internal-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
@@ -457,7 +566,7 @@ $("#oauth-internal-only").click(function() {
 	]);
 });
 
-$("#stats-only").click(function() {
+$("#stats-only").click(function () {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",

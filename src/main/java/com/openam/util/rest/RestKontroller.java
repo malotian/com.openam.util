@@ -74,10 +74,10 @@ public class RestKontroller {
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(List.of(StringUtils.split(konfiguration.getTableColumns(), ",")));
 	}
 
-	@GetMapping("/rest/test")
-	public ResponseEntity<?> test() throws ClientProtocolException, IOException {
-		oam.processEntities();
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(helper.getEntitiesTable2());
-
-	}
+//	@GetMapping("/rest/test")
+//	public ResponseEntity<?> test() throws ClientProtocolException, IOException {
+//		oam.processEntities();
+//		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(helper.getEntitiesTable2());
+//
+//	}
 }

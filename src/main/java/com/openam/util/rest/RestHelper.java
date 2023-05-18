@@ -29,7 +29,7 @@ public class RestHelper {
 	}
 
 	public Set<Map<String, String>> getEntitiesTable() {
-		return Entity.getAllEntities().values().stream().map(v -> {
+		return Entity.getAllEntities().values().stream().filter(v -> !EntityType.POLICY.equals(v.getEntityType())).map(v -> {
 			final var copy = new HashMap<>(v.getAttributes());
 			copy.put("ID", v.getID());
 			copy.put("TYPE", v.getEntityType().toString());
@@ -37,16 +37,16 @@ public class RestHelper {
 		}).collect(Collectors.toSet());
 	}
 
-	public Set<Map<String, String>> getEntitiesTable2() {
-		return getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).map(v -> {
-			final var copy = new HashMap<String, String>();
-			copy.put("ID", v.getID());
-			copy.put("TYPE", v.getEntityType().toString());
-			copy.put(Entity.HOSTED_REMOTE, v.getAttribute(Entity.HOSTED_REMOTE));
-			copy.put(Entity.SP_IDP, v.getAttribute(Entity.SP_IDP));
-			return copy;
-		}).collect(Collectors.toSet());
-	}
+//	public Set<Map<String, String>> getEntitiesTable2() {
+//		return getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).map(v -> {
+//			final var copy = new HashMap<String, String>();
+//			copy.put("ID", v.getID());
+//			copy.put("TYPE", v.getEntityType().toString());
+//			copy.put(Entity.HOSTED_REMOTE, v.getAttribute(Entity.HOSTED_REMOTE));
+//			copy.put(Entity.SP_IDP, v.getAttribute(Entity.SP_IDP));
+//			return copy;
+//		}).collect(Collectors.toSet());
+//	}
 
 	public Set<Map<String, String>> getStatsTable() {
 		return stats().entrySet().stream().map(e -> {

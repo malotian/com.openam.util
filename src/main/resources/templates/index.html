@@ -9,10 +9,14 @@
         <link th:href="@{styles/main.css}" rel="stylesheet" />
         <link th:href="@{styles/tabulator.min.css}" rel="stylesheet" />
         <script type="text/javascript" src="scripts/tabulator.min.js"></script>
+        <script type="text/javascript" src="https://oss.sheetjs.com/sheetjs/xlsx.full.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
     <body>
         <script th:src="@{/webjars/jquery/3.6.4/jquery.min.js}" type="text/javascript"></script>
         <script th:src="@{/webjars/bootstrap/5.2.3/js/bootstrap.bundle.min.js}" type="text/javascript"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>        
         <!--  div th:replace="~{fragments/header :: header}"></div-->
         <div class="container-fluid pt-3">
             <div class="card text-center">
@@ -34,6 +38,7 @@
                                     <button class="btn btn-primary" type="button" id="fetch-local">Fetch(Local)</button>
                                     <button class="btn btn-primary" type="button" id="fetch-openam">Fetch(OpenAM)</button>
                                     <button class="btn btn-primary" type="button" id="export-csv">Export(CSV)</button>
+                                    <button class="btn btn-primary" type="button" id="export-pdf">Export(PDF)</button>
                                     <!-- button id="import-csv">Import(CSV)</button-->
                                 </div>
                             </div>
@@ -52,6 +57,7 @@
                                     <option value="ASSIGNED-IDP">ASSIGNED-IDP</option>
                                     <option value="SP/IDP">SP/IDP</option>
                                     <option value="COT">COT</option>
+                                    <option value="CLAIMS">CLAIMS</option>
                                     <option value="HOSTED/REMOTE">HOSTED/REMOTE</option>
                                 </select>
                                 <select id="col-filter-type" class="form-select">
@@ -85,7 +91,8 @@
                                 <div class="d-grid gap-2 d-md-block">
                                     <label class="btn btn-outline-secondary" style="display: none;"><input type="radio" name="quick-filter" autocomplete="off" id="quick-filter-none" style="display: none;" /> None</label>
                                     <label class="btn btn-outline-secondary"><input type="radio" name="quick-filter" autocomplete="off" id="saml-apps-only" /> Saml-Apps-Only</label>
-                                    <label class="btn btn-outline-secondary"><input type="radio" name="quick-filter" autocomplete="off" id="wsfed-apps-only" /> Wsfed-Apps-Only</label>
+                                    <label 
+                                    class="btn btn-outline-secondary"><input type="radio" name="quick-filter" autocomplete="off" id="wsfed-apps-only" /> Wsfed-Apps-Only</label>
                                     <label class="btn btn-outline-secondary"><input type="radio" name="quick-filter" autocomplete="off" id="oauth-apps-only" /> OAuth-Apps-Only</label>
                                     <label class="btn btn-outline-secondary"><input type="radio" name="quick-filter" autocomplete="off" id="2031-saml-wsfed-only" /> 2031-Only</label>
                                     <label class="btn btn-outline-secondary"><input type="radio" name="quick-filter" autocomplete="off" id="2025-saml-wsfed-only" />2025-Only</label>
@@ -130,8 +137,5 @@
 		    </div>
 		  </div>
 		</div>    
-		        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-		  Launch demo modal
-		</button>    
     </body>
 </html>
