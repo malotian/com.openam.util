@@ -165,7 +165,7 @@
 	<build>
 		<resources>
 			<resource>
-				<directory>${project.basedir}</directory><!-- from -->
+				<directory>${project.basedir}/src/main/resources</directory><!-- from -->
 				<targetPath>${project.build.directory}</targetPath><!-- to -->
 				<includes><!-- what -->
 					<include>**/*.properties</include>

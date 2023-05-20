@@ -184,7 +184,14 @@ var columnDefs = [{
 {
 	title: "REMARKS",
 	field: "REMARKS",
-	visible: false
+	visible: false,
+	formatter: function (cell, formatterParams, onRendered) {
+		if (undefined == cell.getValue())
+			return "";
+		const jsonArray = JSON.parse(cell.getValue());
+		const multilineString = jsonArray.join('<br>');
+		return multilineString;
+	}
 }
 ];
 
