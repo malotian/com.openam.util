@@ -1,5 +1,6 @@
 package com.openam.util.entity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -7,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jcabi.aspects.Loggable;
+import com.openam.util.Util;
 
 public class Entity extends EntityID {
 
@@ -75,12 +77,11 @@ public class Entity extends EntityID {
 
 	}
 
+	ArrayList<String> remarks = new ArrayList<>();
+
 	public void addRemarks(final String value) {
-		var helper = value;
-		if (attributes.containsKey(Entity.REMARKS)) {
-			helper = attributes.get(Entity.REMARKS) + "#" + value;
-		}
-		attributes.put(Entity.REMARKS, helper);
+		remarks.add(value);
+		attributes.put(Entity.REMARKS, Util.json(remarks));
 	}
 
 	public String getAttribute(final String attribute) {

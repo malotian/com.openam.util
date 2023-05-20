@@ -2,10 +2,13 @@ package com.openam.util.entity.processor;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
+import java.text.MessageFormat;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -14,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
+import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -37,91 +40,133 @@ public class WsfedProcessor {
 		final var id = json.get("_id").asText();
 
 		if (!json.has("entityConfig")) {
+			WsfedProcessor.logger.warn("skipping, entityConfig missing : {} ", json.get("_id").asText());
 			return;
 		}
 
-		final var entityConfig = json.get("entityConfig").asText().replace("\r", "").replace("\n", "");
+		final var entityConfig = json.get("entityConfig").asText();
 
 		final var wsfed = new Wsfed(id);
 
-		if (!entityConfig.contains("IDPSSOConfig")) {
-			helper.updateAuthAsPerPolicies(wsfed);
-		}
+		final var builderFactory = DocumentBuilderFactory.newInstance();
+		final var builder = builderFactory.newDocumentBuilder();
 
-		if (entityConfig.contains("IDPSSOConfig")) {
-			wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
-			final var attributeMappers = new ArrayList<String>();
+		final var xmlEntityConfig = builder.parse(new InputSource(new StringReader(entityConfig)));
 
-			if (Entity.patternDefaultIDPAttributeMapper.matcher(entityConfig).find()) {
-				attributeMappers.add("DefaultIDPAttributeMapper");
-			}
-			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(entityConfig).find()) {
-				attributeMappers.add("PwCIdentityIDPAttributeMapper");
-			}
-			if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(entityConfig).find()) {
-				attributeMappers.add("PwCIdentityWSFedIDPAttributeMapper");
-			}
+		final var xPath = XPathFactory.newInstance().newXPath();
 
-			wsfed.addAttribute(Entity.ATTRIBUTE_MAPPER, String.join(",", attributeMappers));
+		final var nodeListIDPSSOConfig = (NodeList) xPath.compile("//FederationConfig/IDPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+		final var isIDP = 0 != nodeListIDPSSOConfig.getLength();
+		WsfedProcessor.logger.debug("isIDP: {}", isIDP);
 
-			final var accountMappers = new ArrayList<String>();
-			if (Entity.patternDefaultIDPAccountMapper.matcher(entityConfig).find()) {
-				accountMappers.add("DefaultIDPAccountMapper");
-			}
-			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(entityConfig).find()) {
-				accountMappers.add("PwCIdentityMultipleNameIDAccountMapper");
-			}
-			if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(entityConfig).find()) {
-				accountMappers.add("PwCIdentityWsfedIDPAccountMapper");
-			}
+		final var nodeListSPSSOConfig = (NodeList) xPath.compile("//FederationConfig/SPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+		final var isSP = 0 != nodeListSPSSOConfig.getLength();
+		WsfedProcessor.logger.debug("isSP: {}", isSP);
 
-			wsfed.addAttribute(Entity.ACCOUNT_MAPPER, String.join(",", accountMappers));
-		}
-
-		if (entityConfig.contains("SPSSOConfig")) {
-			wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
-		}
-
-		if (entityConfig.contains("hosted=\"true\"")) {
+		final var hosted = (String) xPath.compile("//FederationConfig/@hosted").evaluate(xmlEntityConfig, XPathConstants.STRING);
+		WsfedProcessor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
+		if ("true".equalsIgnoreCase(hosted)) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
-		} else if (entityConfig.contains("hosted=\"false\"")) {
+		} else if ("false".equalsIgnoreCase(hosted)) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
 		}
 
-		final var metaData = json.get("metadata").asText();
-		final var builderFactory = DocumentBuilderFactory.newInstance();
-		final var builder = builderFactory.newDocumentBuilder();
-		final var xmlDocument = builder.parse(new InputSource(new StringReader(metaData)));
+		// assume default
+		wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
 
-		final var xPath = XPathFactory.newInstance().newXPath();
-		final var xpathAddress = "//*[local-name() = 'TokenIssuerEndpoint']/*[local-name() = 'Address']";
-		final var nodeListAddress = (NodeList) xPath.compile(xpathAddress).evaluate(xmlDocument, XPathConstants.NODESET);
+		if (isIDP) {
+			_processIDP(id, wsfed, xmlEntityConfig, xPath);
+		}
+		if (isSP) {
+			helper.updateAuthAsPerPolicies(wsfed);
+			if (!json.has("metadata")) {
+				WsfedProcessor.logger.warn("skipping, metadata missing : {} ", json.get("_id").asText());
+				return;
+			}
+			final var metadata = json.get("metadata").asText();
+			final var xmlMetadata = builder.parse(new InputSource(new StringReader(metadata)));
+			_processSP(wsfed, xmlMetadata, xmlEntityConfig, xPath, isSP);
+		}
+	}
 
-		final var redirectUrls = new ArrayList<String>();
+	private void _processIDP(final String id, final Wsfed wsfed, final Document xmlEntityConfig, final XPath xPath) throws XPathExpressionException {
+		wsfed.addAttribute(Entity.SP_IDP, Entity.IDENTITY_PROVIDER);
+		final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
+				XPathConstants.NODESET);
+		for (var i = 0; i < idpAuthncontextClassrefMappings.getLength(); i++) {
+			WsfedProcessor.logger.debug("idpAuthncontextClassrefMappings: {}", idpAuthncontextClassrefMappings.item(i).getTextContent());
+			final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
 
-		for (var i = 0; i < nodeListAddress.getLength(); i++) {
-			if (nodeListAddress.item(i).getNodeType() == Node.ELEMENT_NODE) {
-				redirectUrls.add(nodeListAddress.item(i).getTextContent());
+			if (matcher.find()) {
+				WsfedProcessor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
+				wsfed.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
+				final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", wsfed.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
+				wsfed.addRemarks(remarks1);
+
+				wsfed.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
+				final var remarks2 = MessageFormat.format("EXTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", wsfed.getAttribute(Entity.EXTERNAL_AUTH), matcher.group(1));
+				wsfed.addRemarks(remarks2);
 			}
 		}
+
+		final var idpAccountMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAccountMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+		final var accountMappers = IntStream.range(0, idpAccountMappers.getLength()).mapToObj(idpAccountMappers::item).map(iam -> {
+			WsfedProcessor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
+			if (Entity.patternDefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+				return "DefaultIDPAccountMapper";
+			}
+			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(iam.getTextContent()).find()) {
+				return "PwCIdentityMultipleNameIDAccountMapper";
+			} else if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+				return "PwCIdentityWsfedIDPAccountMapper";
+			} else {
+				WsfedProcessor.logger.warn("invalid idpAccountMapper: {} for wsfed: {}", iam.getTextContent(), id);
+				return null;
+			}
+		}).collect(Collectors.toList());
+
+		wsfed.addAttribute(Entity.ACCOUNT_MAPPER, Util.json(accountMappers));
+
+		final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+
+		final var attributeMappers = IntStream.range(0, idpAttributeMappers.getLength()).mapToObj(idpAttributeMappers::item).map(iam -> {
+			WsfedProcessor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
+			if (Entity.patternDefaultIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
+				return "DefaultIDPAttributeMapper";
+			}
+			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
+				return "PwCIdentityIDPAttributeMapper";
+			} else if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
+				return "PwCIdentityWSFedIDPAttributeMapper";
+			} else {
+				WsfedProcessor.logger.warn("invalid idpAttributeMapper: {} for wsfed: {}", iam.getTextContent(), id);
+				return null;
+			}
+		}).collect(Collectors.toList());
+
+		wsfed.addAttribute(Entity.ATTRIBUTE_MAPPER, Util.json(attributeMappers));
+	}
+
+	private void _processSP(final Wsfed wsfed, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath, final boolean isSP) throws XPathExpressionException {
+		wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
+		WsfedProcessor.logger.debug("isSP: {}", isSP);
+
+		final var tokenIssuerEndpoints = (NodeList) xPath.compile("//*[local-name() = 'TokenIssuerEndpoint']/*[local-name() = 'Address']").evaluate(xmlMetadata, XPathConstants.NODESET);
+		final var redirectUrls = IntStream.range(0, tokenIssuerEndpoints.getLength()).mapToObj(tokenIssuerEndpoints::item).map(t -> {
+			WsfedProcessor.logger.debug("tokenIssuerEndpoint: {}", t.getTextContent());
+			return t.getTextContent();
+		}).collect(Collectors.toList());
+
 		wsfed.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
-		final var builder2 = builderFactory.newDocumentBuilder();
-		final var xmlDocument2 = builder2.parse(new InputSource(new StringReader(entityConfig)));
+		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
-		final var xPath2 = XPathFactory.newInstance().newXPath();
-		final var xpathAttributeMap = "//Attribute[@name='attributeMap']/Value";
-		final var nodeListAttributeMap = (NodeList) xPath2.compile(xpathAttributeMap).evaluate(xmlDocument2, XPathConstants.NODESET);
-
-		final var claims = new ArrayList<String>();
-		for (var i = 0; i < nodeListAttributeMap.getLength(); i++) {
-			if (nodeListAttributeMap.item(i).getNodeType() == Node.ELEMENT_NODE) {
-				claims.add(nodeListAttributeMap.item(i).getTextContent());
-			}
-		}
+		final var claims = IntStream.range(0, attributeMaps.getLength()).mapToObj(attributeMaps::item).map(claim -> {
+			WsfedProcessor.logger.debug("claim: {}", claim.getTextContent());
+			return claim.getTextContent();
+		}).collect(Collectors.toList());
 
 		wsfed.addAttribute(Entity.CLAIMS, Util.json(claims));
-
 	}
 
 	public void process(final JsonNode wsfedEntities) {

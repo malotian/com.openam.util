@@ -25,8 +25,12 @@ public class Konfiguration {
 		return openamPassword;
 	}
 
-	public String getTableColumns() {
-		return tableColumns;
+	public String getOpenamProdUrl() {
+		return openamProdUrl;
+	}
+
+	public String getOpenamStageUrl() {
+		return openamStageUrl;
 	}
 
 	public String getOpenamUrl() {
@@ -36,36 +40,32 @@ public class Konfiguration {
 		return openamStageUrl;
 	}
 
-	public String getOpenamProdUrl() {
-		return openamProdUrl;
-	}
-
-	public String getOpenamStageUrl() {
-		return openamStageUrl;
-	}
-
 	public String getOpenamUsername() {
 		return openamUsername;
 	}
 
+	public String getTableColumns() {
+		return tableColumns;
+	}
+
 	public void setOpenamPassword(final String password) {
-		this.openamPassword = password;
+		openamPassword = password;
+	}
+
+	public void setOpenamProdUrl(final String urlProd) {
+		openamProdUrl = urlProd;
+	}
+
+	public void setOpenamStageUrl(final String urlStage) {
+		openamStageUrl = urlStage;
+	}
+
+	public void setOpenamUsername(final String username) {
+		openamUsername = username;
 	}
 
 	public void setTableColumns(final String tableColumns) {
 		this.tableColumns = tableColumns;
-	}
-
-	public void setOpenamProdUrl(final String urlProd) {
-		this.openamProdUrl = urlProd;
-	}
-
-	public void setOpenamStageUrl(final String urlStage) {
-		this.openamStageUrl = urlStage;
-	}
-
-	public void setOpenamUsername(final String username) {
-		this.openamUsername = username;
 	}
 
 }

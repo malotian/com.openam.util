@@ -2,13 +2,13 @@
 var rowMenu = [
 	{
 		label: "<i class='fas fa-user'></i> Change Name",
-		action: function (e, row) {
+		action: function(e, row) {
 			row.update({ name: "Steve Bobberson" });
 		}
 	},
 	{
 		label: "<i class='fas fa-check-square'></i> Select Row",
-		action: function (e, row) {
+		action: function(e, row) {
 			row.select();
 		}
 	},
@@ -20,7 +20,7 @@ var rowMenu = [
 		menu: [
 			{
 				label: "<i class='fas fa-trash'></i> Delete Row",
-				action: function (e, row) {
+				action: function(e, row) {
 					row.delete();
 				}
 			},
@@ -33,13 +33,16 @@ var rowMenu = [
 ]
 
 //define column header menu as column visibility toggle
-var headerMenu = function () {
+var headerMenu = function() {
 	var menu = [];
 	var columns = this.getColumns();
 
 	for (let column of columns) {
-		
+
 		if (true == column.getDefinition().rowHandle)
+			continue;
+
+		if (column.getDefinition().title.startsWith("-"))
 			continue;
 
 		//create checkbox element using font awesome icons
@@ -47,12 +50,13 @@ var headerMenu = function () {
 		checkBox.classList.add("form-check-input");
 		checkBox.setAttribute("type", "checkbox");
 		checkBox.checked = column.isVisible();
-		
+
 		//build label
 		let label = document.createElement("span");
 		let title = document.createElement("span");
 
 		title.textContent = " " + column.getDefinition().title;
+
 
 		label.appendChild(checkBox);
 		label.appendChild(title);
@@ -60,7 +64,7 @@ var headerMenu = function () {
 		//create menu item
 		menu.push({
 			label: label,
-			action: function (e) {
+			action: function(e) {
 				//prevent menu closing
 				e.stopPropagation();
 				column.toggle();
@@ -82,7 +86,7 @@ var columnDefs = [{
 	frozen: true,
 	width: 5,
 	verAlign: "top",
-	formatter:"responsiveCollapse",
+	//formatter:"responsiveCollapse",
 
 },
 {
@@ -96,11 +100,11 @@ var columnDefs = [{
 	field: "TYPE",
 	frozen: true,
 	widthGrow: 0.7,
-	mutator:function(value, data){
+	mutator: function(value, data) {
 		if (undefined === data["SP-IDP"])
 			return data["TYPE"]
-        return data["TYPE"] +"-"+ data["SP-IDP"];
-    }
+		return data["TYPE"] + "-" + data["SP-IDP"];
+	}
 },
 {
 	title: "INT",
@@ -118,9 +122,9 @@ var columnDefs = [{
 	widthGrow: 1.5,
 },
 {
-	title: "TYPE2",
+	title: "-TYPE2",
 	field: "SP-IDP",
-	visible: false	
+	visible: false
 },
 {
 	title: "COT",
@@ -130,7 +134,7 @@ var columnDefs = [{
 	title: "CLAIMS",
 	field: "CLAIMS",
 	widthGrow: 3,
-	formatter: function(cell, formatterParams, onRendered){
+	formatter: function(cell, formatterParams, onRendered) {
 		if (undefined == cell.getValue())
 			return "";
 		const jsonArray = JSON.parse(cell.getValue());
@@ -142,7 +146,7 @@ var columnDefs = [{
 	title: "REDIRECT-URLS",
 	field: "REDIRECT-URLS",
 	widthGrow: 3,
-	formatter: function(cell, formatterParams, onRendered){
+	formatter: function(cell, formatterParams, onRendered) {
 		if (undefined == cell.getValue())
 			return "";
 		const jsonArray = JSON.parse(cell.getValue());
@@ -153,14 +157,29 @@ var columnDefs = [{
 {
 	title: "ACCOUNT-MAPPER",
 	field: "ACCOUNT-MAPPER",
+	formatter: function(cell, formatterParams, onRendered) {
+		if (undefined == cell.getValue())
+			return "";
+		const jsonArray = JSON.parse(cell.getValue());
+		const multilineString = jsonArray.join('<br>');
+		return multilineString;
+	}
 },
 {
 	title: "ATTRIBUTE-MAPPER",
 	field: "ATTRIBUTE-MAPPER",
+	formatter: function(cell, formatterParams, onRendered) {
+		if (undefined == cell.getValue())
+			return "";
+		const jsonArray = JSON.parse(cell.getValue());
+		const multilineString = jsonArray.join('<br>');
+		return multilineString;
+	}
 },
 {
 	title: "HOSTED-REMOTE",
 	field: "HOSTED-REMOTE",
+	widthGrow: 0.5,
 },
 {
 	title: "REMARKS",
@@ -202,7 +221,7 @@ function matchAny(data, filterParams) {
 	return match;
 }
 
-$("#freetext-filter-value").keyup(function () {
+$("#freetext-filter-value").keyup(function() {
 	table.setFilter(matchAny, {
 		value: $("#freetext-filter-value").val()
 	});
@@ -248,18 +267,47 @@ function clearFilterEx(row) {
 	table.clearFilter();
 }
 
+function pretty(value) {
+    try {
+        const jsonValue = JSON.parse(value);
+        return JSON.stringify(jsonValue, false, 2);
+    } catch (error) {}
+
+    if (undefined === value || null === value)
+    	return "";
+
+	return value;
+}
+
+function formatJSONTable(row) {
+    let html = '<table>';
+    var columns = table.getColumns();
+	for (let column of columns) {
+
+		if (true == column.getDefinition().rowHandle)
+			continue;
+
+		if (column.getDefinition().title.startsWith("-"))
+			continue;
+
+		let colTitle = column.getDefinition().title;
+        let colValue = pretty(row[colTitle]);
+
+        html += `<tr><pre style=\"display:inline\"><strong>${colTitle}:</strong>${colValue}</pre><br></tr>`;
+    }
+    html += '</table>';
+    // Remove the header row
+    const tableElement = document.createElement('table');
+    tableElement.innerHTML = html;
+    tableElement.deleteRow(0);
+
+    return tableElement.outerHTML;
+}
 
 function remarks(row) {
 	container = document.createElement("div");
-	contents = "<strong style='font-size:1.2em;'>" + row["ID"] + "</strong><br/><ul style='padding:0;  margin-top:10px; margin-bottom:0;'>";
-	const items = row["REMARKS"].split("#");
-	for (const item of items) {
-		const items = row["REMARKS"].split("#");
 
-		contents += "<li>" + item + "</li>";
-	}
-	contents += "</ul>";
-	container.innerHTML = contents;
+	container.innerHTML = formatJSONTable(row);
 
 	return container;
 }
@@ -280,7 +328,7 @@ var table = new Tabulator("#openam-entities-table", {
 		headerFilter: "input",
 		resizable: true,
 		headerMenu: headerMenu,
-		tooltip: function (e, row, onRendered) {
+		tooltip: function(e, row, onRendered) {
 			return remarks(row.getData());
 		}
 	},
@@ -288,7 +336,7 @@ var table = new Tabulator("#openam-entities-table", {
 	footerElement: '<span class="tabulator-counter float-left">' +
 		'Showing <span id="search_count"></span> results out of <span id="total_count"></span> ' +
 		'</span>',
-	ajaxResponse: function (url, params, response) {
+	ajaxResponse: function(url, params, response) {
 		//url - the URL of the request
 		//params - the parameters passed with the request
 		//response - the JSON object returned in the body of the response.
@@ -298,47 +346,47 @@ var table = new Tabulator("#openam-entities-table", {
 	},
 });
 
-table.on("cellClick", function (e, cell) {
+table.on("cellClick", function(e, cell) {
 	cell.popup(remarks(cell.getRow().getData()), "center");
 });
 
-table.on("dataLoaded", function (data) {
+table.on("dataLoaded", function(data) {
 	var env = $("#selected-environment").val();
 	$("#total_count").text(data.length);
 	table.redraw();
 });
 
-table.on("dataFiltered", function (filters, rows) {
+table.on("dataFiltered", function(filters, rows) {
 	$("#search_count").text(rows.length);
 });
 
 
-$("#fetch-openam-test").click(function () {
+$("#fetch-openam-test").click(function() {
 	//table.setData("/openam/json/test");
 });
 
-$("#import-csv").click(function () {
+$("#import-csv").click(function() {
 	table.import("csv", ".csv");
 });
 
-$("#fetch-local").click(function () {
+$("#fetch-local").click(function() {
 	var env = $("#selected-environment").val();
 	table.setData("/rest/local/json?env=" + env);
 });
 
-$("#fetch-openam").click(function () {
+$("#fetch-openam").click(function() {
 	var env = $("#selected-environment").val();
 	table.setData("/rest/openam/json?env=" + env);
 });
 
 // A $( document ).ready() block.
-table.on("tableBuilding", function () {
+table.on("tableBuilding", function() {
 	$.ajax({
-		url: "/rest/table/column/visible", success: function (result) {
+		url: "/rest/table/column/visible", success: function(result) {
 			table.getColumns(true).forEach((col) => {
 				if (undefined !== col.getDefinition().field) {
 					if (false === result.includes(col.getDefinition().field)) {
-						col.delete();
+						col.hide();
 						console.log("hiding: " + col.getDefinition().field);
 					}
 				}
@@ -347,18 +395,18 @@ table.on("tableBuilding", function () {
 	});
 });
 
-table.on("dataProcessed", function () {
+table.on("dataProcessed", function() {
 	table.redraw(true);
 });
 
-$("#selected-environment").on('change', function () {
+$("#selected-environment").on('change', function() {
 	var env = $("#selected-environment").val();
 	console.log("--" + env);
 	table.setData(dataTables[env]);
 });
 
 //Clear filters on "Clear Filters" button click
-$("#filter-clear").click(function () {
+$("#filter-clear").click(function() {
 	clearFilterEx();
 });
 
@@ -374,7 +422,7 @@ function timeStamp() {
 	return localDateTime;
 }
 
-$("#export-pdf").click(function () {
+$("#export-pdf").click(function() {
 	var env = $("#selected-environment").val();
 	var filName = env + "-openam-" + timeStamp() + ".pdf";
 	table.download("pdf", filName, {
@@ -386,13 +434,13 @@ $("#export-pdf").click(function () {
 });
 
 
-$("#export-csv").click(function () {
+$("#export-csv").click(function() {
 	var env = $("#selected-environment").val();
 	var filName = env + "-openam-" + timeStamp() + ".csv"
 	table.download("csv", filName);
 });
 
-$("#all-apps-only").click(function () {
+$("#all-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -408,7 +456,7 @@ $("#all-apps-only").click(function () {
 
 });
 
-$("#saml-apps-only").click(function () {
+$("#saml-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -423,7 +471,7 @@ $("#saml-apps-only").click(function () {
 	]);
 });
 
-$("#wsfed-apps-only").click(function () {
+$("#wsfed-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -438,7 +486,7 @@ $("#wsfed-apps-only").click(function () {
 	]);
 });
 
-$("#oauth-apps-only").click(function () {
+$("#oauth-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
@@ -450,7 +498,7 @@ $("#oauth-apps-only").click(function () {
 
 
 
-$("#2031-saml-wsfed-only").click(function () {
+$("#2031-saml-wsfed-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -470,7 +518,7 @@ $("#2031-saml-wsfed-only").click(function () {
 	]);
 });
 
-$("#2025-saml-wsfed-only").click(function () {
+$("#2025-saml-wsfed-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -491,7 +539,7 @@ $("#2025-saml-wsfed-only").click(function () {
 });
 
 
-$("#internal-apps-only").click(function () {
+$("#internal-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -511,7 +559,7 @@ $("#internal-apps-only").click(function () {
 	]);
 });
 
-$("#saml-internal-only").click(function () {
+$("#saml-internal-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -531,7 +579,7 @@ $("#saml-internal-only").click(function () {
 	]);
 });
 
-$("#wsfed-internal-only").click(function () {
+$("#wsfed-internal-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -551,7 +599,7 @@ $("#wsfed-internal-only").click(function () {
 	]);
 });
 
-$("#oauth-internal-only").click(function () {
+$("#oauth-internal-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
@@ -566,7 +614,7 @@ $("#oauth-internal-only").click(function () {
 	]);
 });
 
-$("#stats-only").click(function () {
+$("#stats-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
