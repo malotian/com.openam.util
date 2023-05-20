@@ -117,7 +117,8 @@ public class WsfedProcessor {
 			}
 			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityMultipleNameIDAccountMapper";
-			} else if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+			}
+			if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityWsfedIDPAccountMapper";
 			} else {
 				WsfedProcessor.logger.warn("invalid idpAccountMapper: {} for wsfed: {}", iam.getTextContent(), id);
@@ -136,7 +137,8 @@ public class WsfedProcessor {
 			}
 			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityIDPAttributeMapper";
-			} else if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
+			}
+			if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityWSFedIDPAttributeMapper";
 			} else {
 				WsfedProcessor.logger.warn("invalid idpAttributeMapper: {} for wsfed: {}", iam.getTextContent(), id);

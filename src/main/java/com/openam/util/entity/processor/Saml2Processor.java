@@ -130,7 +130,8 @@ public class Saml2Processor {
 			}
 			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityMultipleNameIDAccountMapper";
-			} else if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+			}
+			if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityWsfedIDPAccountMapper";
 			} else {
 				Saml2Processor.logger.warn("invalid idpAccountMapper: {} for saml2: {}", iam.getTextContent(), id);
@@ -149,7 +150,8 @@ public class Saml2Processor {
 			}
 			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityIDPAttributeMapper";
-			} else if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
+			}
+			if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityWSFedIDPAttributeMapper";
 			} else {
 				Saml2Processor.logger.warn("invalid idpAttributeMapper: {} for saml2: {}", iam.getTextContent(), id);

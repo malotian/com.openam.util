@@ -67,6 +67,8 @@ public class Entity extends EntityID {
 
 	protected HashMap<String, String> attributes = new HashMap<>();
 
+	ArrayList<String> remarks = new ArrayList<>();
+
 	public Entity(final String id, final EntityType type) {
 		super(id, type);
 		Entity.entities.put(this, this);
@@ -76,8 +78,6 @@ public class Entity extends EntityID {
 		attributes.put(name, value);
 
 	}
-
-	ArrayList<String> remarks = new ArrayList<>();
 
 	public void addRemarks(final String value) {
 		remarks.add(value);
