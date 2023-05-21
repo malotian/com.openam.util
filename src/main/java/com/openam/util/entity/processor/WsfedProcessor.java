@@ -57,14 +57,14 @@ public class WsfedProcessor {
 
 		final var nodeListIDPSSOConfig = (NodeList) xPath.compile("//FederationConfig/IDPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var isIDP = 0 != nodeListIDPSSOConfig.getLength();
-		WsfedProcessor.logger.debug("isIDP: {}", isIDP);
+		//WsfedProcessor.logger.debug("isIDP: {}", isIDP);
 
 		final var nodeListSPSSOConfig = (NodeList) xPath.compile("//FederationConfig/SPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var isSP = 0 != nodeListSPSSOConfig.getLength();
-		WsfedProcessor.logger.debug("isSP: {}", isSP);
+		//WsfedProcessor.logger.debug("isSP: {}", isSP);
 
 		final var hosted = (String) xPath.compile("//FederationConfig/@hosted").evaluate(xmlEntityConfig, XPathConstants.STRING);
-		WsfedProcessor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
+		//WsfedProcessor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
 		if ("true".equalsIgnoreCase(hosted)) {
 			wsfed.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
 		} else if ("false".equalsIgnoreCase(hosted)) {
@@ -94,11 +94,11 @@ public class WsfedProcessor {
 		final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
 				XPathConstants.NODESET);
 		for (var i = 0; i < idpAuthncontextClassrefMappings.getLength(); i++) {
-			WsfedProcessor.logger.debug("idpAuthncontextClassrefMappings: {}", idpAuthncontextClassrefMappings.item(i).getTextContent());
+			//WsfedProcessor.logger.debug("idpAuthncontextClassrefMappings: {}", idpAuthncontextClassrefMappings.item(i).getTextContent());
 			final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
 
 			if (matcher.find()) {
-				WsfedProcessor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
+				//WsfedProcessor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
 				wsfed.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
 				final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", wsfed.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
 				wsfed.addRemarks(remarks1);
@@ -111,7 +111,7 @@ public class WsfedProcessor {
 
 		final var idpAccountMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAccountMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var accountMappers = IntStream.range(0, idpAccountMappers.getLength()).mapToObj(idpAccountMappers::item).map(iam -> {
-			WsfedProcessor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
+			//WsfedProcessor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
 			if (Entity.patternDefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "DefaultIDPAccountMapper";
 			}
@@ -131,7 +131,7 @@ public class WsfedProcessor {
 		final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
 		final var attributeMappers = IntStream.range(0, idpAttributeMappers.getLength()).mapToObj(idpAttributeMappers::item).map(iam -> {
-			WsfedProcessor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
+			//WsfedProcessor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
 			if (Entity.patternDefaultIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "DefaultIDPAttributeMapper";
 			}
@@ -151,11 +151,11 @@ public class WsfedProcessor {
 
 	private void _processSP(final Wsfed wsfed, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath, final boolean isSP) throws XPathExpressionException {
 		wsfed.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
-		WsfedProcessor.logger.debug("isSP: {}", isSP);
+		//WsfedProcessor.logger.debug("isSP: {}", isSP);
 
 		final var tokenIssuerEndpoints = (NodeList) xPath.compile("//*[local-name() = 'TokenIssuerEndpoint']/*[local-name() = 'Address']").evaluate(xmlMetadata, XPathConstants.NODESET);
 		final var redirectUrls = IntStream.range(0, tokenIssuerEndpoints.getLength()).mapToObj(tokenIssuerEndpoints::item).map(t -> {
-			WsfedProcessor.logger.debug("tokenIssuerEndpoint: {}", t.getTextContent());
+			//WsfedProcessor.logger.debug("tokenIssuerEndpoint: {}", t.getTextContent());
 			return t.getTextContent();
 		}).collect(Collectors.toList());
 
@@ -164,7 +164,7 @@ public class WsfedProcessor {
 		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
 		final var claims = IntStream.range(0, attributeMaps.getLength()).mapToObj(attributeMaps::item).map(claim -> {
-			WsfedProcessor.logger.debug("claim: {}", claim.getTextContent());
+			//WsfedProcessor.logger.debug("claim: {}", claim.getTextContent());
 			return claim.getTextContent();
 		}).collect(Collectors.toList());
 

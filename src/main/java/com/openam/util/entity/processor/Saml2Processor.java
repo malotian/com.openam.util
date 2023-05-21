@@ -69,14 +69,14 @@ public class Saml2Processor {
 
 		final var nodeListIDPSSODescriptor = (NodeList) xPath.compile("//IDPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var isIDP = 0 != nodeListIDPSSODescriptor.getLength();
-		Saml2Processor.logger.debug("isIDP: {}", isIDP);
+		//Saml2Processor.logger.debug("isIDP: {}", isIDP);
 
 		final var nodeListSPSSODescriptor = (NodeList) xPath.compile("//SPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var isSP = 0 != nodeListSPSSODescriptor.getLength();
-		Saml2Processor.logger.debug("isSP: {}", isSP);
+		//Saml2Processor.logger.debug("isSP: {}", isSP);
 
 		final var hosted = (String) xPath.compile("//EntityConfig/@hosted").evaluate(xmlEntityConfig, XPathConstants.STRING);
-		Saml2Processor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
+		//Saml2Processor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
 		if ("true".equalsIgnoreCase(hosted)) {
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
 		} else if ("false".equalsIgnoreCase(hosted)) {
@@ -107,11 +107,11 @@ public class Saml2Processor {
 		final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
 				XPathConstants.NODESET);
 		for (var i = 0; i < idpAuthncontextClassrefMappings.getLength(); i++) {
-			Saml2Processor.logger.debug("idpAuthncontextClassrefMappings: {}", idpAuthncontextClassrefMappings.item(i).getTextContent());
+			//Saml2Processor.logger.debug("idpAuthncontextClassrefMappings: {}", idpAuthncontextClassrefMappings.item(i).getTextContent());
 			final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
 
 			if (matcher.find()) {
-				Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
+				//Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
 				saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
 				final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
 				saml2.addRemarks(remarks1);
@@ -124,7 +124,7 @@ public class Saml2Processor {
 
 		final var idpAccountMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAccountMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var accountMappers = IntStream.range(0, idpAccountMappers.getLength()).mapToObj(idpAccountMappers::item).map(iam -> {
-			Saml2Processor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
+			//Saml2Processor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
 			if (Entity.patternDefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "DefaultIDPAccountMapper";
 			}
@@ -144,7 +144,7 @@ public class Saml2Processor {
 		final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
 		final var attributeMappers = IntStream.range(0, idpAttributeMappers.getLength()).mapToObj(idpAttributeMappers::item).map(iam -> {
-			Saml2Processor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
+			//Saml2Processor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
 			if (Entity.patternDefaultIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "DefaultIDPAttributeMapper";
 			}
@@ -164,11 +164,11 @@ public class Saml2Processor {
 
 	private void _processSP(final Saml2 saml2, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath, final boolean isSP) throws XPathExpressionException {
 		saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
-		Saml2Processor.logger.debug("isSP: {}", isSP);
+		//Saml2Processor.logger.debug("isSP: {}", isSP);
 
 		final var assertionConsumerServices = (NodeList) xPath.compile("//EntityDescriptor/SPSSODescriptor/AssertionConsumerService/@Location").evaluate(xmlMetadata, XPathConstants.NODESET);
 		final var redirectUrls = IntStream.range(0, assertionConsumerServices.getLength()).mapToObj(assertionConsumerServices::item).map(acs -> {
-			Saml2Processor.logger.debug("assertionConsumerService: {}", acs);
+			//Saml2Processor.logger.debug("assertionConsumerService: {}", acs);
 			return acs.getTextContent();
 		}).collect(Collectors.toList());
 
@@ -177,7 +177,7 @@ public class Saml2Processor {
 		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
 		final var claims = IntStream.range(0, attributeMaps.getLength()).mapToObj(attributeMaps::item).map(claim -> {
-			Saml2Processor.logger.debug("claim: {}", claim.getTextContent());
+			//Saml2Processor.logger.debug("claim: {}", claim.getTextContent());
 			return claim.getTextContent();
 		}).collect(Collectors.toList());
 
