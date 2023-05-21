@@ -277,7 +277,9 @@ function clearFilterEx(row) {
 function pretty(value) {
 	try {
 		const jsonValue = JSON.parse(value);
-		return JSON.stringify(jsonValue, false, 2);
+		return JSON.stringify(jsonValue, false, 2).replace(/\\(['"])/g, '$1').replace(/['"]/g, '');
+		// followng keeps nested quotes
+		//		return JSON.stringify(jsonValue, false, 2).replace(/([^\\])"/g, '$1').replace(/\\(['"])/g, '$1');
 	} catch (error) { }
 
 	if (undefined === value || null === value)

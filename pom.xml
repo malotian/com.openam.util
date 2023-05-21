@@ -163,16 +163,25 @@
 		</dependencies>
 	</dependencyManagement>
 	<build>
-		<resources>
-			<resource>
-				<directory>${project.basedir}/src/main/resources</directory><!-- from -->
-				<targetPath>${project.build.directory}</targetPath><!-- to -->
-				<includes><!-- what -->
-					<include>**/*.properties</include>
-				</includes>
-			</resource>
-		</resources>
 		<plugins>
+			<plugin>
+				<groupId>com.coderplus.maven.plugins</groupId>
+				<artifactId>copy-rename-maven-plugin</artifactId>
+				<version>1.0</version>
+				<executions>
+					<execution>
+						<id>copy-file</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+						    <sourceFile>src/main/resources/application.properties</sourceFile>
+						    <destinationFile>target/application.properties</destinationFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
