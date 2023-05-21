@@ -47,7 +47,6 @@ public class OAuth2ClientProcessor {
 
 		if (!acrs.isEmpty()) {
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
-
 			final var remarks1 = MessageFormat.format("EXTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.EXTERNAL_AUTH), Util.json(acrs));
 			oauth2Client.addRemarks(remarks1);
 			if (acrs.contains("2")) {

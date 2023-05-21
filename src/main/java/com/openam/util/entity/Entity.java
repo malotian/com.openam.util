@@ -24,7 +24,7 @@ public class Entity extends EntityID {
 	public static String IDENTITY_PROVIDER = "IDP";
 
 	public static String INTERNAL_AUTH = "INT";
-	public static String REMARKS = "REMARKS";
+	private static String REMARKS = "REMARKS";
 
 	public static String REMOTE = "REMOTE";
 	public static String ACCOUNT_MAPPER = "ACCOUNT-MAPPER";

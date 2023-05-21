@@ -140,7 +140,7 @@ public class Saml2Processor {
 			return null;
 		}).collect(Collectors.toList());
 
-		saml2.addAttribute(Entity.ACCOUNT_MAPPER, Util.json(accountMappers));
+		accountMappers.forEach(am -> saml2.addRemarks(MessageFormat.format("ACCOUNT_MAPPER: {0}", am)));
 
 		final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
@@ -159,7 +159,7 @@ public class Saml2Processor {
 			return null;
 		}).collect(Collectors.toList());
 
-		saml2.addAttribute(Entity.ATTRIBUTE_MAPPER, Util.json(attributeMappers));
+		attributeMappers.forEach(am -> saml2.addRemarks(MessageFormat.format("ATTRIBUTE_MAPPER: {0}", am)));
 	}
 
 	private void _processSP(final Saml2 saml2, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath) throws XPathExpressionException {

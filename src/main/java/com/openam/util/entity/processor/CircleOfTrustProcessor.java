@@ -105,7 +105,9 @@ public class CircleOfTrustProcessor {
 
 		cot.addAttribute(Entity.ASSIGNED_IDP, cot.getIdp().getID());
 		cot.addRemarks(MessageFormat.format("ASSIGNED-IDP: {0}", cot.getIdp().getID()));
+
 		final var idp = Entity.get(cot.getIdp());
+		idp.addRemarks(MessageFormat.format("COT: {0}", id));
 
 		cot.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
 		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH: {0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));

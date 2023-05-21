@@ -127,7 +127,7 @@ public class WsfedProcessor {
 			return null;
 		}).collect(Collectors.toList());
 
-		wsfed.addAttribute(Entity.ACCOUNT_MAPPER, Util.json(accountMappers));
+		accountMappers.forEach(am -> wsfed.addRemarks(MessageFormat.format("ACCOUNT_MAPPER: {0}", am)));
 
 		final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
@@ -146,7 +146,7 @@ public class WsfedProcessor {
 			return null;
 		}).collect(Collectors.toList());
 
-		wsfed.addAttribute(Entity.ATTRIBUTE_MAPPER, Util.json(attributeMappers));
+		attributeMappers.forEach(am -> wsfed.addRemarks(MessageFormat.format("ATTRIBUTE_MAPPER: {0}", am)));
 	}
 
 	private void _processSP(final Wsfed wsfed, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath) throws XPathExpressionException {

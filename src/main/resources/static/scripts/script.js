@@ -157,28 +157,6 @@ var columnDefs = [{
 	}
 },
 {
-	title: "ACCOUNT-MAPPER",
-	field: "ACCOUNT-MAPPER",
-	formatter: function (cell, formatterParams, onRendered) {
-		if (undefined == cell.getValue())
-			return "";
-		const jsonArray = JSON.parse(cell.getValue());
-		const multilineString = jsonArray.join('<br>');
-		return multilineString;
-	}
-},
-{
-	title: "ATTRIBUTE-MAPPER",
-	field: "ATTRIBUTE-MAPPER",
-	formatter: function (cell, formatterParams, onRendered) {
-		if (undefined == cell.getValue())
-			return "";
-		const jsonArray = JSON.parse(cell.getValue());
-		const multilineString = jsonArray.join('<br>');
-		return multilineString;
-	}
-},
-{
 	title: "HOSTED-REMOTE",
 	field: "HOSTED-REMOTE",
 	widthGrow: 0.5,
@@ -186,12 +164,13 @@ var columnDefs = [{
 {
 	title: "REMARKS",
 	field: "REMARKS",
-	visible: false,
-	formatter: function (cell, formatterParams, onRendered) {
-		if (undefined == cell.getValue())
+	formatter:"textarea",
+	widthGrow: 0.5,
+	mutator: function(value, data, type, params, component){
+		if (undefined == value)
 			return "";
-		const jsonArray = JSON.parse(cell.getValue());
-		const multilineString = jsonArray.join('<br>');
+		const jsonArray = JSON.parse(value);
+		const multilineString = jsonArray.join('\n');
 		return multilineString;
 	}
 }
@@ -278,8 +257,7 @@ function clearFilterEx(row) {
 
 function pretty(value) {
 	try {
-		const jsonValue = JSON.parse(value);
-		return JSON.stringify(jsonValue, false, 2).replace(/\\(['"])/g, '$1').replace(/['"]/g, '');
+		return JSON.stringify(value.split('\n'), false, 2).replace(/\\(['"])/g, '$1').replace(/['"]/g, '');
 		// followng keeps nested quotes
 		//		return JSON.stringify(jsonValue, false, 2).replace(/([^\\])"/g, '$1').replace(/\\(['"])/g, '$1');
 	} catch (error) { }
@@ -302,7 +280,11 @@ function formatJSONTable(row) {
 			continue;
 
 		let colTitle = column.getDefinition().title;
-		let colValue = pretty(row[colTitle]);
+		let colValue = row[colTitle];
+		if (colValue === undefined || colValue === null || colValue.trim().length === 0)
+			colValue = "";		
+		else if (column.getDefinition().formatter === 'textarea')
+			colValue =  pretty(row[colTitle]);
 
 		html += `<tr><pre style=\"display:inline\"><strong>${colTitle}:</strong>${colValue}</pre><br></tr>`;
 	}
@@ -317,9 +299,7 @@ function formatJSONTable(row) {
 
 function remarks(row) {
 	container = document.createElement("div");
-
 	container.innerHTML = formatJSONTable(row);
-
 	return container;
 }
 
