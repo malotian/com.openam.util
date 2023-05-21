@@ -134,11 +134,12 @@ var columnDefs = [{
 	title: "CLAIMS",
 	field: "CLAIMS",
 	widthGrow: 3,
-	formatter: function (cell, formatterParams, onRendered) {
-		if (undefined == cell.getValue())
+	formatter:"textarea",
+	mutator: function(value, data, type, params, component){
+		if (undefined == value)
 			return "";
-		const jsonArray = JSON.parse(cell.getValue());
-		const multilineString = jsonArray.join('<br>');
+		const jsonArray = JSON.parse(value);
+		const multilineString = jsonArray.join('\n');
 		return multilineString;
 	}
 },
@@ -146,11 +147,12 @@ var columnDefs = [{
 	title: "REDIRECT-URLS",
 	field: "REDIRECT-URLS",
 	widthGrow: 3,
-	formatter: function (cell, formatterParams, onRendered) {
-		if (undefined == cell.getValue())
+	formatter:"textarea",
+	mutator: function(value, data, type, params, component){
+		if (undefined == value)
 			return "";
-		const jsonArray = JSON.parse(cell.getValue());
-		const multilineString = jsonArray.join('<br>');
+		const jsonArray = JSON.parse(value);
+		const multilineString = jsonArray.join('\n');
 		return multilineString;
 	}
 },
@@ -437,8 +439,9 @@ $("#export-pdf").click(function () {
 	table.download("pdf", filName, {
 		orientation: "landscape", //set page orientation to portrait
 		title: env, //add title to report
-		unit: "in",
-		format: [595.28, 841.89]
+	    jsPDF:{
+			format: "b3"	
+	    },		
 	});
 });
 
