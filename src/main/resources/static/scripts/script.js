@@ -442,7 +442,7 @@ $("#all-apps-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["SAML2", "WSFED", "OAUTH2"]
+		value: ["SAML2-SP", "WSFED-SP", "OAUTH2"]
 	},
 	]);
 
@@ -458,7 +458,7 @@ $("#saml-apps-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["SAML2"]
+		value: ["SAML2-SP"]
 	},
 	]);
 });
@@ -473,7 +473,7 @@ $("#wsfed-apps-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["WSFED"]
+		value: ["WSFED-SP"]
 	},
 	]);
 });
@@ -500,7 +500,7 @@ $("#2031-saml-wsfed-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["SAML2", "WSFED"]
+		value: ["SAML2-SP", "WSFED-SP"]
 	},
 	{
 		field: "COT",
@@ -520,7 +520,7 @@ $("#2025-saml-wsfed-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["SAML2", "WSFED"]
+		value: ["SAML2-SP", "WSFED-SP"]
 	},
 	{
 		field: "COT",
@@ -537,14 +537,14 @@ $("#internal-apps-only").click(function () {
 		field: "SP-IDP",
 		type: "!=",
 		value: "IDP"
-	}, //filter by age greater than 52
+	}, 
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["SAML2", "WSFED", "OAUTH2"]
+		value: ["SAML2-SP", "WSFED-SP", "OAUTH2"]
 	},
 	{
-		field: "EXTERNAL-AUTH",
+		field: "EXT",
 		type: "in",
 		value: ["N/A"]
 	},
@@ -561,10 +561,10 @@ $("#saml-internal-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["SAML2"]
+		value: ["SAML2-SP"]
 	},
 	{
-		field: "EXTERNAL-AUTH",
+		field: "EXT",
 		type: "in",
 		value: ["N/A"]
 	},
@@ -581,10 +581,10 @@ $("#wsfed-internal-only").click(function () {
 	{
 		field: "TYPE",
 		type: "in",
-		value: ["WSFED"]
+		value: ["WSFED-SP"]
 	},
 	{
-		field: "EXTERNAL-AUTH",
+		field: "EXT",
 		type: "in",
 		value: ["N/A"]
 	},
@@ -599,7 +599,7 @@ $("#oauth-internal-only").click(function () {
 		value: ["OAUTH2"]
 	},
 	{
-		field: "EXTERNAL-AUTH",
+		field: "EXT",
 		type: "in",
 		value: ["N/A"]
 	},
