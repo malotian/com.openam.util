@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -69,14 +70,14 @@ public class Saml2Processor {
 
 		final var nodeListIDPSSODescriptor = (NodeList) xPath.compile("//IDPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var isIDP = 0 != nodeListIDPSSODescriptor.getLength();
-		//Saml2Processor.logger.debug("isIDP: {}", isIDP);
+		// Saml2Processor.logger.debug("isIDP: {}", isIDP);
 
 		final var nodeListSPSSODescriptor = (NodeList) xPath.compile("//SPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var isSP = 0 != nodeListSPSSODescriptor.getLength();
-		//Saml2Processor.logger.debug("isSP: {}", isSP);
+		// Saml2Processor.logger.debug("isSP: {}", isSP);
 
 		final var hosted = (String) xPath.compile("//EntityConfig/@hosted").evaluate(xmlEntityConfig, XPathConstants.STRING);
-		//Saml2Processor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
+		// Saml2Processor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
 		if ("true".equalsIgnoreCase(hosted)) {
 			saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
 		} else if ("false".equalsIgnoreCase(hosted)) {
@@ -97,7 +98,7 @@ public class Saml2Processor {
 			}
 			final var metadata = json.get("metadata").asText();
 			final var xmlMetadata = builder.parse(new InputSource(new StringReader(metadata)));
-			_processSP(saml2, xmlMetadata, xmlEntityConfig, xPath, isSP);
+			_processSP(saml2, xmlMetadata, xmlEntityConfig, xPath);
 		}
 
 	}
@@ -107,11 +108,12 @@ public class Saml2Processor {
 		final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
 				XPathConstants.NODESET);
 		for (var i = 0; i < idpAuthncontextClassrefMappings.getLength(); i++) {
-			//Saml2Processor.logger.debug("idpAuthncontextClassrefMappings: {}", idpAuthncontextClassrefMappings.item(i).getTextContent());
+			// Saml2Processor.logger.debug("idpAuthncontextClassrefMappings: {}",
+			// idpAuthncontextClassrefMappings.item(i).getTextContent());
 			final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
 
 			if (matcher.find()) {
-				//Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
+				// Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
 				saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
 				final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
 				saml2.addRemarks(remarks1);
@@ -124,8 +126,8 @@ public class Saml2Processor {
 
 		final var idpAccountMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAccountMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 		final var accountMappers = IntStream.range(0, idpAccountMappers.getLength()).mapToObj(idpAccountMappers::item).map(iam -> {
-			//Saml2Processor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
-			if (Entity.patternDefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+			// Saml2Processor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
+			if (Entity.patternSaml2DefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "DefaultIDPAccountMapper";
 			}
 			if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(iam.getTextContent()).find()) {
@@ -133,10 +135,9 @@ public class Saml2Processor {
 			}
 			if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityWsfedIDPAccountMapper";
-			} else {
-				Saml2Processor.logger.warn("invalid idpAccountMapper: {} for saml2: {}", iam.getTextContent(), id);
-				return null;
 			}
+			Saml2Processor.logger.warn("invalid idpAccountMapper: {} for saml2: {}", iam.getTextContent(), id);
+			return null;
 		}).collect(Collectors.toList());
 
 		saml2.addAttribute(Entity.ACCOUNT_MAPPER, Util.json(accountMappers));
@@ -144,8 +145,8 @@ public class Saml2Processor {
 		final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
 		final var attributeMappers = IntStream.range(0, idpAttributeMappers.getLength()).mapToObj(idpAttributeMappers::item).map(iam -> {
-			//Saml2Processor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
-			if (Entity.patternDefaultIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
+			// Saml2Processor.logger.debug("idpAttributeMapper: {}", iam.getTextContent());
+			if (Entity.patternSaml2DefaultIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "DefaultIDPAttributeMapper";
 			}
 			if (Entity.patternPwCIdentityIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
@@ -153,33 +154,26 @@ public class Saml2Processor {
 			}
 			if (Entity.patternPwCIdentityWSFedIDPAttributeMapper.matcher(iam.getTextContent()).find()) {
 				return "PwCIdentityWSFedIDPAttributeMapper";
-			} else {
-				Saml2Processor.logger.warn("invalid idpAttributeMapper: {} for saml2: {}", iam.getTextContent(), id);
-				return null;
 			}
+			Saml2Processor.logger.warn("invalid idpAttributeMapper: {} for saml2: {}", iam.getTextContent(), id);
+			return null;
 		}).collect(Collectors.toList());
 
 		saml2.addAttribute(Entity.ATTRIBUTE_MAPPER, Util.json(attributeMappers));
 	}
 
-	private void _processSP(final Saml2 saml2, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath, final boolean isSP) throws XPathExpressionException {
+	private void _processSP(final Saml2 saml2, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath) throws XPathExpressionException {
 		saml2.addAttribute(Entity.SP_IDP, Entity.SERVICE_PROVIDER);
-		//Saml2Processor.logger.debug("isSP: {}", isSP);
+		// Saml2Processor.logger.debug("isSP: {}", isSP);
 
 		final var assertionConsumerServices = (NodeList) xPath.compile("//EntityDescriptor/SPSSODescriptor/AssertionConsumerService/@Location").evaluate(xmlMetadata, XPathConstants.NODESET);
-		final var redirectUrls = IntStream.range(0, assertionConsumerServices.getLength()).mapToObj(assertionConsumerServices::item).map(acs -> {
-			//Saml2Processor.logger.debug("assertionConsumerService: {}", acs);
-			return acs.getTextContent();
-		}).collect(Collectors.toList());
+		final var redirectUrls = IntStream.range(0, assertionConsumerServices.getLength()).mapToObj(assertionConsumerServices::item).map(Node::getTextContent).collect(Collectors.toList());
 
 		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
 
 		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
-		final var claims = IntStream.range(0, attributeMaps.getLength()).mapToObj(attributeMaps::item).map(claim -> {
-			//Saml2Processor.logger.debug("claim: {}", claim.getTextContent());
-			return claim.getTextContent();
-		}).collect(Collectors.toList());
+		final var claims = IntStream.range(0, attributeMaps.getLength()).mapToObj(attributeMaps::item).map(Node::getTextContent).collect(Collectors.toList());
 
 		saml2.addAttribute(Entity.CLAIMS, Util.json(claims));
 	}
