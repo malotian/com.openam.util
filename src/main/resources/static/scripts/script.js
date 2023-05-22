@@ -1,12 +1,6 @@
 //define row context menu contents
 var rowMenu = [
 	{
-		label: "<i class='fas fa-user'></i> Change Name",
-		action: function (e, row) {
-			row.update({ name: "Steve Bobberson" });
-		}
-	},
-	{
 		label: "<i class='fas fa-check-square'></i> Select Row",
 		action: function (e, row) {
 			row.select();
@@ -307,7 +301,7 @@ var table = new Tabulator("#openam-entities-table", {
 	height: "75vh",
 	layout: "fitColumns",
 	responsiveLayout: "collapse",
-	rowContextMenu: rowMenu, //add context menu to rows
+	//rowContextMenu: rowMenu, //add context menu to rows
 	columns: columnDefs,
 	placeholder: "Awaiting Data, Please Load File",
 	groupBy: ["TYPE"],
