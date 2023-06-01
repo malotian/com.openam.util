@@ -2,7 +2,7 @@
 var rowMenu = [
 	{
 		label: "<i class='fas fa-check-square'></i> Select Row",
-		action: function (e, row) {
+		action: function(e, row) {
 			row.select();
 		}
 	},
@@ -14,7 +14,7 @@ var rowMenu = [
 		menu: [
 			{
 				label: "<i class='fas fa-trash'></i> Delete Row",
-				action: function (e, row) {
+				action: function(e, row) {
 					row.delete();
 				}
 			},
@@ -27,7 +27,7 @@ var rowMenu = [
 ]
 
 //define column header menu as column visibility toggle
-var headerMenu = function () {
+var headerMenu = function() {
 	var menu = [];
 	var columns = this.getColumns();
 
@@ -58,7 +58,7 @@ var headerMenu = function () {
 		//create menu item
 		menu.push({
 			label: label,
-			action: function (e) {
+			action: function(e) {
 				//prevent menu closing
 				e.stopPropagation();
 				column.toggle();
@@ -94,7 +94,7 @@ var columnDefs = [{
 	field: "TYPE",
 	frozen: true,
 	widthGrow: 0.7,
-	mutator: function (value, data) {
+	mutator: function(value, data) {
 		if (undefined === data["SP-IDP"])
 			return data["TYPE"]
 		return data["TYPE"] + "-" + data["SP-IDP"];
@@ -128,8 +128,8 @@ var columnDefs = [{
 	title: "CLAIMS",
 	field: "CLAIMS",
 	widthGrow: 3,
-	formatter:"textarea",
-	mutator: function(value, data, type, params, component){
+	formatter: "textarea",
+	mutator: function(value, data, type, params, component) {
 		if (undefined == value)
 			return "";
 		const jsonArray = JSON.parse(value);
@@ -141,8 +141,8 @@ var columnDefs = [{
 	title: "REDIRECT-URLS",
 	field: "REDIRECT-URLS",
 	widthGrow: 3,
-	formatter:"textarea",
-	mutator: function(value, data, type, params, component){
+	formatter: "textarea",
+	mutator: function(value, data, type, params, component) {
 		if (undefined == value)
 			return "";
 		const jsonArray = JSON.parse(value);
@@ -158,9 +158,9 @@ var columnDefs = [{
 {
 	title: "REMARKS",
 	field: "REMARKS",
-	formatter:"textarea",
+	formatter: "textarea",
 	widthGrow: 0.5,
-	mutator: function(value, data, type, params, component){
+	mutator: function(value, data, type, params, component) {
 		if (undefined == value)
 			return "";
 		const jsonArray = JSON.parse(value);
@@ -203,7 +203,7 @@ function matchAny(data, filterParams) {
 	return match;
 }
 
-$("#freetext-filter-value").keyup(function () {
+$("#freetext-filter-value").keyup(function() {
 	table.setFilter(matchAny, {
 		value: $("#freetext-filter-value").val()
 	});
@@ -263,7 +263,9 @@ function pretty(value) {
 }
 
 function formatJSONTable(row) {
-	let html = '<table>';
+
+	let html = '<input id=\"copy-tool-tip-button\" type=\"button\" value=\"Copy\" style=\"float: right;\" onclick=\"copyCode(this);return false;\">';
+	html += '<div id=\"tool-tip-contents\"><table>';
 	var columns = table.getColumns();
 	for (let column of columns) {
 
@@ -276,20 +278,34 @@ function formatJSONTable(row) {
 		let colTitle = column.getDefinition().title;
 		let colValue = row[colTitle];
 		if (colValue === undefined || colValue === null || colValue.trim().length === 0)
-			colValue = "";		
+			colValue = "";
 		else if (column.getDefinition().formatter === 'textarea')
-			colValue =  pretty(row[colTitle]);
+			colValue = pretty(row[colTitle]);
 
 		html += `<tr><pre style=\"display:inline\"><strong>${colTitle}:</strong>${colValue}</pre><br></tr>`;
 	}
-	html += '</table>';
-	// Remove the header row
-	const tableElement = document.createElement('table');
-	tableElement.innerHTML = html;
-	tableElement.deleteRow(0);
+	html += '</table></div>';
 
+	// Remove the header row
+	const tableElement = document.createElement('div');
+	tableElement.innerHTML = html;
 	return tableElement.outerHTML;
 }
+
+async function copyCode(button) {
+	button.value = "Copied";
+	setTimeout(() => {
+		button.value = "Copy";
+	}, 700);
+	
+	var range = document.createRange();
+	range.selectNode(document.getElementById("tool-tip-contents"));
+	window.getSelection().removeAllRanges(); // clear current selection
+	window.getSelection().addRange(range); // to select text
+	document.execCommand("copy");
+	window.getSelection().removeAllRanges();// to deselect
+}
+
 
 function remarks(row) {
 	container = document.createElement("div");
@@ -313,7 +329,7 @@ var table = new Tabulator("#openam-entities-table", {
 		headerFilter: "input",
 		resizable: true,
 		headerMenu: headerMenu,
-		tooltip: function (e, row, onRendered) {
+		tooltip: function(e, row, onRendered) {
 			return remarks(row.getData());
 		}
 	},
@@ -321,7 +337,7 @@ var table = new Tabulator("#openam-entities-table", {
 	footerElement: '<span class="tabulator-counter float-left">' +
 		'Showing <span id="search_count"></span> results out of <span id="total_count"></span> ' +
 		'</span>',
-	ajaxResponse: function (url, params, response) {
+	ajaxResponse: function(url, params, response) {
 		//url - the URL of the request
 		//params - the parameters passed with the request
 		//response - the JSON object returned in the body of the response.
@@ -331,43 +347,43 @@ var table = new Tabulator("#openam-entities-table", {
 	},
 });
 
-table.on("cellClick", function (e, cell) {
+table.on("cellClick", function(e, cell) {
 	cell.popup(remarks(cell.getRow().getData()), "center");
 });
 
-table.on("dataLoaded", function (data) {
+table.on("dataLoaded", function(data) {
 	var env = $("#selected-environment").val();
 	$("#total_count").text(data.length);
 	table.redraw();
 });
 
-table.on("dataFiltered", function (filters, rows) {
+table.on("dataFiltered", function(filters, rows) {
 	$("#search_count").text(rows.length);
 });
 
 
-$("#fetch-openam-test").click(function () {
+$("#fetch-openam-test").click(function() {
 	//table.setData("/openam/json/test");
 });
 
-$("#import-csv").click(function () {
+$("#import-csv").click(function() {
 	table.import("csv", ".csv");
 });
 
-$("#fetch-local").click(function () {
+$("#fetch-local").click(function() {
 	var env = $("#selected-environment").val();
 	table.setData("/rest/local/json?env=" + env);
 });
 
-$("#fetch-openam").click(function () {
+$("#fetch-openam").click(function() {
 	var env = $("#selected-environment").val();
 	table.setData("/rest/openam/json?env=" + env);
 });
 
 // A $( document ).ready() block.
-table.on("tableBuilding", function () {
+table.on("tableBuilding", function() {
 	$.ajax({
-		url: "/rest/table/column/visible", success: function (result) {
+		url: "/rest/table/column/visible", success: function(result) {
 			table.getColumns(true).forEach((col) => {
 				if (undefined !== col.getDefinition().field) {
 					if (false === result.includes(col.getDefinition().field)) {
@@ -380,18 +396,18 @@ table.on("tableBuilding", function () {
 	});
 });
 
-table.on("dataProcessed", function () {
+table.on("dataProcessed", function() {
 	table.redraw(true);
 });
 
-$("#selected-environment").on('change', function () {
+$("#selected-environment").on('change', function() {
 	var env = $("#selected-environment").val();
 	console.log("--" + env);
 	table.setData(dataTables[env]);
 });
 
 //Clear filters on "Clear Filters" button click
-$("#filter-clear").click(function () {
+$("#filter-clear").click(function() {
 	clearFilterEx();
 });
 
@@ -407,26 +423,26 @@ function timeStamp() {
 	return localDateTime;
 }
 
-$("#export-pdf").click(function () {
+$("#export-pdf").click(function() {
 	var env = $("#selected-environment").val();
 	var filName = env + "-openam-" + timeStamp() + ".pdf";
 	table.download("pdf", filName, {
 		orientation: "landscape", //set page orientation to portrait
 		title: env, //add title to report
-	    jsPDF:{
-			format: "b3"	
-	    },		
+		jsPDF: {
+			format: "b3"
+		},
 	});
 });
 
 
-$("#export-csv").click(function () {
+$("#export-csv").click(function() {
 	var env = $("#selected-environment").val();
 	var filName = env + "-openam-" + timeStamp() + ".csv"
 	table.download("csv", filName);
 });
 
-$("#all-apps-only").click(function () {
+$("#all-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -442,7 +458,7 @@ $("#all-apps-only").click(function () {
 
 });
 
-$("#saml-apps-only").click(function () {
+$("#saml-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -457,7 +473,7 @@ $("#saml-apps-only").click(function () {
 	]);
 });
 
-$("#wsfed-apps-only").click(function () {
+$("#wsfed-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -472,7 +488,7 @@ $("#wsfed-apps-only").click(function () {
 	]);
 });
 
-$("#oauth-apps-only").click(function () {
+$("#oauth-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
@@ -484,7 +500,7 @@ $("#oauth-apps-only").click(function () {
 
 
 
-$("#2031-saml-wsfed-only").click(function () {
+$("#2031-saml-wsfed-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -504,7 +520,7 @@ $("#2031-saml-wsfed-only").click(function () {
 	]);
 });
 
-$("#2025-saml-wsfed-only").click(function () {
+$("#2025-saml-wsfed-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -525,13 +541,13 @@ $("#2025-saml-wsfed-only").click(function () {
 });
 
 
-$("#internal-apps-only").click(function () {
+$("#internal-apps-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
 		type: "!=",
 		value: "IDP"
-	}, 
+	},
 	{
 		field: "TYPE",
 		type: "in",
@@ -545,7 +561,7 @@ $("#internal-apps-only").click(function () {
 	]);
 });
 
-$("#saml-internal-only").click(function () {
+$("#saml-internal-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -565,7 +581,7 @@ $("#saml-internal-only").click(function () {
 	]);
 });
 
-$("#wsfed-internal-only").click(function () {
+$("#wsfed-internal-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "SP-IDP",
@@ -585,7 +601,7 @@ $("#wsfed-internal-only").click(function () {
 	]);
 });
 
-$("#oauth-internal-only").click(function () {
+$("#oauth-internal-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
@@ -600,7 +616,7 @@ $("#oauth-internal-only").click(function () {
 	]);
 });
 
-$("#stats-only").click(function () {
+$("#stats-only").click(function() {
 	table.clearFilter();
 	table.setFilter([{
 		field: "TYPE",
