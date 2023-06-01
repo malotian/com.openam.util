@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.openam</groupId>
 	<artifactId>com.openam.util</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.5-SNAPSHOT</version>
 	<name>com.openam.util</name>
 	<description>helper tool for openam configurations</description>
 	<properties>
