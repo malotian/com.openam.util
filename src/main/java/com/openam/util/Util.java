@@ -2,6 +2,8 @@ package com.openam.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -27,5 +29,15 @@ public class Util {
 		} catch (final JsonProcessingException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static String jsonNormalizeSize(final List<String> list) {
+		String helper = Util.json(list);
+		while (helper.length() > 30000) {
+			var list2 = list.stream().limit(list.size() - 100).collect(Collectors.toList());
+			list2.add("truncated-long-list");
+			helper = Util.json(list2);
+		}
+		return helper;
 	}
 }

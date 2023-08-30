@@ -151,6 +151,11 @@ var columnDefs = [{
 	}
 },
 {
+	title: "CERT-ALIAS",
+	field: "CERT-ALIAS",
+	widthGrow: 3,
+},
+{
 	title: "HOSTED-REMOTE",
 	field: "HOSTED-REMOTE",
 	widthGrow: 0.5,

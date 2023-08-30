@@ -116,6 +116,9 @@ public class CircleOfTrustProcessor {
 		cot.getSps().forEach(spID -> {
 			final var sp = Entity.get(spID);
 			sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
+			if (idp.hasAttribute(Entity.CERT_ALIAS)) {
+				sp.addAttribute(Entity.CERT_ALIAS, idp.getAttribute(Entity.CERT_ALIAS));
+			}
 			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
 				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));

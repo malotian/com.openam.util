@@ -160,6 +160,15 @@ public class Saml2Processor {
 		}).collect(Collectors.toList());
 
 		attributeMappers.forEach(am -> saml2.addRemarks(MessageFormat.format("ATTRIBUTE_MAPPER: {0}", am)));
+
+		final var signingCertAliases = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='signingCertAlias']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+		final var certAlias = IntStream.range(0, signingCertAliases.getLength()).mapToObj(signingCertAliases::item).map(ca -> {
+			return ca.getTextContent();
+		}).collect(Collectors.toList());
+
+		if (!certAlias.isEmpty())
+			saml2.addAttribute(Entity.CERT_ALIAS, Util.json(certAlias));
+
 	}
 
 	private void _processSP(final Saml2 saml2, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath) throws XPathExpressionException {
@@ -169,7 +178,7 @@ public class Saml2Processor {
 		final var assertionConsumerServices = (NodeList) xPath.compile("//EntityDescriptor/SPSSODescriptor/AssertionConsumerService/@Location").evaluate(xmlMetadata, XPathConstants.NODESET);
 		final var redirectUrls = IntStream.range(0, assertionConsumerServices.getLength()).mapToObj(assertionConsumerServices::item).map(Node::getTextContent).collect(Collectors.toList());
 
-		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
+		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
 
 		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 

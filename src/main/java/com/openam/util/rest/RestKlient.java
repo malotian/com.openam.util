@@ -25,7 +25,7 @@ import com.openam.util.Kontext;
 
 @Component
 public class RestKlient {
-	static final int SOCKET_TIMEOUT_MILLIS = 60000;
+	static final int SOCKET_TIMEOUT_MILLIS = 5 * 60000;
 
 	static final Logger logger = LoggerFactory.getLogger(RestKlient.class);
 

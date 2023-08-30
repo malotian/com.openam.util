@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -67,7 +69,8 @@ public class OAuth2ClientProcessor {
 			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
 		}
 
-		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls));
+
+		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
 
 		final var claims = new ArrayList<String>();
 		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("scopes")) {

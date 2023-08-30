@@ -29,6 +29,7 @@ public class Entity extends EntityID {
 	public static String REMOTE = "REMOTE";
 	public static String ACCOUNT_MAPPER = "ACCOUNT-MAPPER";
 	public static String ATTRIBUTE_MAPPER = "ATTRIBUTE-MAPPER";
+	public static String CERT_ALIAS = "CERT-ALIAS";
 
 	public static String SERVICE_PROVIDER = "SP";
 

@@ -96,7 +96,7 @@ public class OpenAM {
 		if (!login()) {
 			return false;
 		}
-		return fetchWs() && fetchOAuth2() && fetchPolicies() && fetchCircleOfTrust() && fetchSaml2();
+		return fetchPolicies() && fetchWs() && fetchOAuth2() &&  fetchCircleOfTrust() && fetchSaml2();
 	}
 
 	public void processEntities() throws ClientProtocolException, IOException {
