@@ -55,7 +55,7 @@ public class RestKontroller {
 	public ResponseEntity<?> fetchFromLocal(@RequestParam(name = "env") final String env) throws ClientProtocolException, IOException {
 
 		if (!kontext.file("latest.json").exists()) {
-			oam.processEntities();
+			oam.processEntities(false);
 			final var result = helper.getEntitiesTable();
 			result.addAll(helper.getStatsTable());
 			RestKontroller.mapper.writeValue(kontext.file("latest.json"), result);
@@ -66,8 +66,7 @@ public class RestKontroller {
 
 	@GetMapping("/rest/openam/json")
 	public ResponseEntity<?> fetchFromOpenAM(@RequestParam(name = "env") final String env) throws ClientProtocolException, IOException {
-		oam.loginAndFetchEntities();
-		oam.processEntities();
+		oam.processEntities(true);
 		final var result = helper.getEntitiesTable();
 		result.addAll(helper.getStatsTable());
 		RestKontroller.mapper.writeValue(kontext.file("latest.json"), result);

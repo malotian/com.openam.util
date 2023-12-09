@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.core.exc.StreamWriteException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,23 +61,23 @@ public class OpenAM {
 		System.setProperty("jdk.httpclient.keepalive.timeout", "99999");
 	}
 
-	private boolean fetchCircleOfTrust() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
+	private JsonNode fetchCircleOfTrust() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
 		return restKlient.fetch("/json/realm-config/federation/circlesoftrust?_queryFilter=true", kontext.file("jsonCircleOfTrust.json"));
 	}
 
-	private boolean fetchOAuth2() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
+	private JsonNode fetchOAuth2() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
 		return restKlient.fetch("/json/realm-config/agents/OAuth2Client?_queryFilter=true", kontext.file("jsonOAuth2Entities.json"));
 	}
 
-	private boolean fetchPolicies() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
+	private JsonNode fetchPolicies() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
 		return restKlient.fetch("/json/policies?_queryFilter=true", kontext.file("jsonPolicies.json"));
 	}
 
-	private boolean fetchSaml2() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
+	private JsonNode fetchSaml2() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
 		return restKlient.fetch("/json/realm-config/federation/entityproviders/saml2?_queryFilter=true", kontext.file("jsonSaml2Entities.json"));
 	}
 
-	private boolean fetchWs() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
+	private JsonNode fetchWs() throws IOException, ClientProtocolException, StreamWriteException, DatabindException {
 		return restKlient.fetch("/json/realm-config/federation/entityproviders/ws?_queryFilter=true", kontext.file("jsonWsEntities.json"));
 	}
 
@@ -88,33 +89,52 @@ public class OpenAM {
 		return mapper;
 	}
 
-	private boolean login() throws IOException, ClientProtocolException {
+	public boolean login() throws IOException, ClientProtocolException {
 		return restKlient.login("/json/realms/root/authenticate?authIndexType=service&authIndexValue=ldapService");
 	}
 
-	public boolean loginAndFetchEntities() throws ClientProtocolException, IOException {
-		if (!login()) {
+	public boolean processEntities(boolean refresh) throws ClientProtocolException, IOException {
+
+		if (refresh && !login()) {
 			return false;
 		}
-		return fetchPolicies() && fetchWs() && fetchOAuth2() &&  fetchCircleOfTrust() && fetchSaml2();
+
+		var result = refresh ? fetchPolicies() : parsePolicies();
+		policyProcessor.process(result);
+
+		result = refresh ? fetchWs() : parseWsEntities();
+		wsfedProcessor.process(result);
+
+		result = refresh ? fetchOAuth2() : parseOAuth2Entities();
+		oAuth2ClientProcessor.process(result);
+
+		result = refresh ? fetchSaml2() : parseSaml2Entities();
+		saml2Processor.process(result);
+
+		result = refresh ? fetchCircleOfTrust() : parseCircleOfTrust();
+		circleOfTrustProcessor.process(result);
+
+		return true;
 	}
 
-	public void processEntities() throws ClientProtocolException, IOException {
+	public JsonNode parseCircleOfTrust() throws IOException, StreamReadException, DatabindException {
+		return getMapper().readValue(kontext.file("jsonCircleOfTrust.json"), JsonNode.class);
+	}
 
-		final var jsonPolicies = getMapper().readValue(kontext.file("jsonPolicies.json"), JsonNode.class);
-		policyProcessor.process(jsonPolicies);
+	public JsonNode parseOAuth2Entities() throws IOException, StreamReadException, DatabindException {
+		return getMapper().readValue(kontext.file("jsonOAuth2Entities.json"), JsonNode.class);
+	}
 
-		final var jsonWsEntities = getMapper().readValue(kontext.file("jsonWsEntities.json"), JsonNode.class);
-		wsfedProcessor.process(jsonWsEntities);
+	public JsonNode parsePolicies() throws IOException, StreamReadException, DatabindException {
+		return getMapper().readValue(kontext.file("jsonPolicies.json"), JsonNode.class);
+	}
 
-		final var jsonOAuth2Entities = getMapper().readValue(kontext.file("jsonOAuth2Entities.json"), JsonNode.class);
-		oAuth2ClientProcessor.process(jsonOAuth2Entities);
+	public JsonNode parseSaml2Entities() throws IOException, StreamReadException, DatabindException {
+		return getMapper().readValue(kontext.file("jsonSaml2Entities.json"), JsonNode.class);
+	}
 
-		final var jsonSaml2Entities = getMapper().readValue(kontext.file("jsonSaml2Entities.json"), JsonNode.class);
-		saml2Processor.process(jsonSaml2Entities);
-
-		final var jsonCircleOfTrust = getMapper().readValue(kontext.file("jsonCircleOfTrust.json"), JsonNode.class);
-		circleOfTrustProcessor.process(jsonCircleOfTrust);
+	public JsonNode parseWsEntities() throws IOException, StreamReadException, DatabindException {
+		return getMapper().readValue(kontext.file("jsonWsEntities.json"), JsonNode.class);
 	}
 
 	public void setKonfiguration(final Konfiguration konfiguration) {

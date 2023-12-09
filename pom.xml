@@ -17,8 +17,6 @@
 	<properties>
 		<java.version>11</java.version>
 		<spring-shell.version>3.0.0-M2</spring-shell.version>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.source>11</maven.compiler.source>
 		<thymeleaf.version>3.1.0.RC2</thymeleaf.version>
 		<thymeleaf-layout-dialect.version>2.2.2</thymeleaf-layout-dialect.version>
 		<thymeleaf-extras-springsecurity6.version>3.1.0.RC2</thymeleaf-extras-springsecurity6.version>
@@ -26,6 +24,11 @@
 		<bootstrap.version>3.3.7-1</bootstrap.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.10.1</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
@@ -55,6 +58,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.10.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -176,8 +185,8 @@
 							<goal>copy</goal>
 						</goals>
 						<configuration>
-						    <sourceFile>src/main/resources/application.properties</sourceFile>
-						    <destinationFile>target/application.properties</destinationFile>
+							<sourceFile>src/main/resources/application.properties</sourceFile>
+							<destinationFile>target/application.properties</destinationFile>
 						</configuration>
 					</execution>
 				</executions>
