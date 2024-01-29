@@ -98,6 +98,7 @@ public class OpenAM {
 		if (refresh && !login()) {
 			return false;
 		}
+	
 
 		var result = refresh ? fetchPolicies() : parsePolicies();
 		policyProcessor.process(result);

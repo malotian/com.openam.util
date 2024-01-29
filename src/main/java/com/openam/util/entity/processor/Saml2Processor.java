@@ -112,7 +112,7 @@ public class Saml2Processor {
 			// idpAuthncontextClassrefMappings.item(i).getTextContent());
 			final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
 
-			if (matcher.find()) {
+			if (matcher.find() && !matcher.group(1).isBlank()) {
 				// Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
 				saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
 				final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));

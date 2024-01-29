@@ -49,6 +49,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.openam.util.Kontext;
 import com.openam.util.OpenAM;
+import com.openam.util.entity.Entity;
+import com.openam.util.entity.EntityID;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "com.openam.*")
@@ -64,17 +66,203 @@ public class AdhocProcessor implements CommandLineRunner {
 
 	Gson gsonPrinter = new GsonBuilder().disableHtmlEscaping().create();
 
+	ObjectMapper mapper = new ObjectMapper();
+
 	public static void main(String[] args) {
 		SpringApplication.run(AdhocProcessor.class, args).close();
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
-		kontext.initilize("prod");
 		logger.debug("setting environment: {}", kontext.getEnvironment());
 
-		acr9(args);
+		invaliEntities(args);
 		logger.debug("AdhocProcessor.run");
+	}
+
+	public void invaliEntities(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		HashSet<String> entities = new HashSet<String>();
+		Files.list(Paths.get("C:\\Users\\hdhanjal005\\Downloads\\am_AmsterexportConfig-20240120\\realms\\root-pwc\\WsEntity")).forEach(f -> {
+			try {
+				var w = mapper.readValue(f.toFile(), JsonNode.class).get("data");
+				entities.add(w.get("_id").asText());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+
+		Files.list(Paths.get("C:\\Users\\hdhanjal005\\Downloads\\am_AmsterexportConfig-20240120\\realms\\root-pwc\\Saml2Entity")).forEach(f -> {
+			try {
+				var s = mapper.readValue(f.toFile(), JsonNode.class).get("data");
+				entities.add(s.get("_id").asText());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+
+		Files.list(Paths.get("C:\\Users\\hdhanjal005\\Downloads\\am_AmsterexportConfig-20240120\\realms\\root-pwc\\CircleOfTrust")).forEach(f -> {
+			try {
+				var cot = mapper.readValue(f.toFile(), JsonNode.class).get("data");
+				final var trustedProviders = new HashSet<String>();
+				cot.get("trustedProviders").forEach(provider -> {
+					final var eid = EntityID.ParseProviderEntry(provider.asText()).getID();
+					trustedProviders.add(eid);
+				});
+				entities.removeAll(trustedProviders);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+
+		logger.info(String.join(", ", entities));
+
+	}
+
+	public void policiesDiff2(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		var table20 = new HashMap<String, JsonNode>();
+		Files.list(Paths.get("C:\\Users\\hdhanjal005\\Downloads\\am_AmsterexportConfig-20240120\\realms\\root-pwc\\Policies")).forEach(f -> {
+			try {
+				var policy = mapper.readValue(f.toFile(), JsonNode.class).get("data");
+				table20.put(policy.get("_id").asText(), policy);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+
+		var table28 = new HashMap<String, JsonNode>();
+		Files.list(Paths.get("C:\\Users\\hdhanjal005\\Downloads\\am_AmsterexportConfig-20240128\\realms\\root-pwc\\Policies")).forEach(f -> {
+			try {
+				var policy = mapper.readValue(f.toFile(), JsonNode.class).get("data");
+				table28.put(policy.get("_id").asText(), policy);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+
+		var policiesOfConcerns = Arrays.asList("OAuth Internal_no_fallback Tree", "ExternalUsersTrustedDevice", "SAML/WS-Fed/OAuth Internal CERT", "OAuth Internal Cert", "OAuth External MFA",
+				"External User MFA");
+
+		for (String p : policiesOfConcerns) {
+			if (!table20.containsKey(p)) {
+				logger.error("not available in 20240120: {}", p);
+			}
+			if (!table28.containsKey(p)) {
+				logger.error("not available in 20240128: {}", p);
+			}
+
+			var policy20 = table20.get(p);
+			HashSet<String> resources20Set = new HashSet<>();
+			final var resources20 = policy20.get("resources");
+			for (final var r : resources20) {
+				resources20Set.add(r.asText());
+			}
+
+			var policy28 = table28.get(p);
+			HashSet<String> resources28Set = new HashSet<>();
+			final var resources28 = policy28.get("resources");
+			for (final var r : resources28) {
+				resources28Set.add(r.asText());
+			}
+
+			resources20Set.removeAll(resources28Set);
+
+		}
+
+	}
+
+	public void policiesDiff(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		ObjectMapper mapper = new ObjectMapper();
+		var past = mapper.readValue(Paths.get("stage-21-jan/jsonPolicies.json").toFile(), JsonNode.class).get("result");
+		var pastTable = new HashMap<String, HashSet<String>>();
+		for (final var json : past) {
+			if (!json.has("resources"))
+				continue;
+
+			final var id = json.get("_id").asText();
+			pastTable.put(id, new HashSet<>());
+			final var resources = json.get("resources");
+			for (final var r : resources) {
+				pastTable.get(id).add(r.asText());
+			}
+		}
+
+		kontext.initilize("stage");
+		var today = mapper.readValue(Paths.get("stage/jsonPolicies.json").toFile(), JsonNode.class).get("result");
+		var todayTable = new HashMap<String, HashSet<String>>();
+		for (final var json : today) {
+			if (!json.has("resources"))
+				continue;
+
+			final var id = json.get("_id").asText();
+			todayTable.put(id, new HashSet<>());
+			final var resources = json.get("resources");
+			for (final var r : resources) {
+				todayTable.get(id).add(r.asText());
+			}
+		}
+
+		for (final var p : pastTable.keySet()) {
+			if (!todayTable.containsKey(p)) {
+				logger.error("POLICY: {} missing", p);
+			} else {
+				pastTable.get(p).removeAll(todayTable.get(p));
+
+				if (!pastTable.get(p).isEmpty()) {
+					logger.error("POLICY: {}, missing enteries: {}", p, String.join(",", pastTable.get(p)));
+				}
+
+			}
+		}
+
+	}
+
+	public void cotDiff(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		ObjectMapper mapper = new ObjectMapper();
+		var past = mapper.readValue(Paths.get("stage-21-jan/jsonCircleOfTrust.json").toFile(), JsonNode.class).get("result");
+		var pastTable = new HashMap<String, HashSet<String>>();
+		for (final var json : past) {
+			if (!json.has("trustedProviders"))
+				continue;
+
+			final var id = json.get("_id").asText();
+			pastTable.put(id, new HashSet<>());
+			final var trustedProviders = json.get("trustedProviders");
+			for (final var tp : trustedProviders) {
+				pastTable.get(id).add(tp.asText());
+			}
+		}
+
+		kontext.initilize("stage");
+		var today = mapper.readValue(Paths.get("stage/jsonCircleOfTrust.json").toFile(), JsonNode.class).get("result");
+		var todayTable = new HashMap<String, HashSet<String>>();
+		for (final var json : today) {
+			if (!json.has("trustedProviders"))
+				continue;
+
+			final var id = json.get("_id").asText();
+			todayTable.put(id, new HashSet<>());
+			final var trustedProviders = json.get("trustedProviders");
+			for (final var tp : trustedProviders) {
+				todayTable.get(id).add(tp.asText());
+			}
+		}
+
+		for (final var p : pastTable.keySet()) {
+			if (!todayTable.containsKey(p)) {
+				logger.error("COT: {} missing", p);
+			} else {
+				pastTable.get(p).removeAll(todayTable.get(p));
+
+				if (!pastTable.get(p).isEmpty()) {
+					logger.error("COT: {}, missing enteries: {}", p, String.join(",", pastTable.get(p)));
+				}
+
+			}
+		}
+
 	}
 
 	public void acr9(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {

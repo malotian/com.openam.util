@@ -2,6 +2,7 @@ package com.openam.util.entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ public class Entity extends EntityID {
 
 	public static String ACTIVE = "ACTIVE";
 
-	public static Pattern patternPasswordProtectedTransportServiceCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(CERT|MFA)\\|default");
+	public static Pattern patternPasswordProtectedTransportServiceCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
 	public static Pattern patternSaml2DefaultIDPAttributeMapper = Pattern.compile("com.sun.identity.saml2.plugins.DefaultIDPAttributeMapper");
 	public static Pattern patternWsfedDefaultIDPAttributeMapper = Pattern.compile("com.sun.identity.wsfederation.plugins.DefaultIDPAttributeMapper");
 	public static Pattern patternPwCIdentityIDPAttributeMapper = Pattern.compile("com.pwc.pwcidentity.openam.attributemapper.PwCIdentityIDPAttributeMapper");
@@ -100,4 +101,15 @@ public class Entity extends EntityID {
 		return attributes.containsKey(attribute);
 
 	}
+	
+    public static void main(String[] args) {
+        String input = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|123|service=pwc-cert|default";
+        Pattern pattern = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            String groupText = matcher.group(1); // This will select the text in group CERT|MFA
+            System.out.println(groupText);
+        }
+    }	
 }
