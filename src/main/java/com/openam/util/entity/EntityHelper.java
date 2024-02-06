@@ -3,6 +3,7 @@ package com.openam.util.entity;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -43,6 +44,14 @@ public class EntityHelper {
 
 	public Set<Policy> getInternalMFAPolicies() {
 		return getPolicies().stream().filter(e -> Policy.patternInternalMFAPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getInternalNoFallbackTreePolicies() {
+		return getPolicies().stream().filter(e -> Policy.patternInternalNoFallbackTreePolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getInternalTreePWDPolicies() {
+		return getPolicies().stream().filter(e -> Policy.patternInternalTreePWDPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
 	public Set<Policy> getInternalMFAPoliciesApplicable(final EntityID id) {
@@ -122,6 +131,16 @@ public class EntityHelper {
 		} else if (getResourcesForInternalCERTPolicies().contains(entity)) {
 			final var policies = getInternalCERTPoliciesApplicable(entity);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
+			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
+			entity.addRemarks(remarks);
+		} else if (getInternalNoFallbackTreePolicies().contains(entity)) {
+			final var policies = getInternalCERTPoliciesApplicable(entity);
+			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_INTERNAL_NO_FALLBACK_TREE);
+			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
+			entity.addRemarks(remarks);
+		} else if (getInternalTreePWDPolicies().contains(entity)) {
+			final var policies = getInternalCERTPoliciesApplicable(entity);
+			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_INTERNAL_PWD_TREE);
 			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
 		} else {

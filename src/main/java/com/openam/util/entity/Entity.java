@@ -16,6 +16,10 @@ public class Entity extends EntityID {
 	public static String ASSIGNED_IDP = "IDP";
 	public static String AUTH_LEVEL_CERT = "CERT";
 	public static String AUTH_LEVEL_MFA = "MFA";
+	public static String AUTH_LEVEL_INTERNAL_NO_FALLBACK_TREE = "INTERNAL_NO_FALLBACK_TREE";
+	public static String AUTH_LEVEL_INTERNAL_PWD_TREE = "INTERNAL_NO_PWD_TREE";
+	
+	
 	public static String COT = "COT";
 	private static HashMap<EntityID, Entity> entities = new HashMap<>();
 	public static String EXTERNAL_AUTH = "EXT";

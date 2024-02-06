@@ -3,9 +3,9 @@ package com.openam.util.entity.processor;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -30,6 +30,28 @@ public class OAuth2ClientProcessor {
 	@Autowired
 	protected EntityHelper helper;
 
+	protected static Map<Integer, String> acrMap = new HashMap<>() {
+		{
+			put(2, "MFA");
+			put(3, "test_entrust");
+			put(4, "CERT");
+			put(5, "internalChain");
+			put(6, "pwc-cert");
+			put(7, "ldapDJChain");
+			put(8, "AdminMFA");
+			put(100, "internal_mfa");
+			put(101, "internal_bypass");
+			put(102, "zt_device_registration");
+			put(103, "zt_change_device");
+			put(104, "mfa_oath");
+			put(105, "internal");
+			put(106, "internal_no_fallback");
+			put(107, "internal_mfa_trusted");
+			put(108, "admin");
+			put(109, "cyberark");
+		}
+	};
+
 	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
 		final var oauth2Client = new OAuth2Client(id);
@@ -51,24 +73,19 @@ public class OAuth2ClientProcessor {
 			oauth2Client.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
 			final var remarks1 = MessageFormat.format("EXTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.EXTERNAL_AUTH), Util.json(acrs));
 			oauth2Client.addRemarks(remarks1);
-			if (acrs.contains("2")) {
-
-				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
-				final var remarks2 = MessageFormat.format("INTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.INTERNAL_AUTH), Util.json(acrs));
-				oauth2Client.addRemarks(remarks2);
-			}
-			if (acrs.contains("4") || acrs.contains("6")) {
-				oauth2Client.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
-				final var remarks2 = MessageFormat.format("INTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.INTERNAL_AUTH), Util.json(acrs));
-				oauth2Client.addRemarks(remarks2);
-			}
+			acrs.forEach(acr -> {
+				if (acrMap.containsKey(acr)) {
+					oauth2Client.addAttribute(Entity.INTERNAL_AUTH, acrMap.get(acr));
+					final var remarks2 = MessageFormat.format("INTERNAL_AUTH: {0}, acr: {1}", oauth2Client.getAttribute(Entity.INTERNAL_AUTH), Util.json(acr));
+					oauth2Client.addRemarks(remarks2);
+				}
+			});
 		}
 
 		final var redirectUrls = new ArrayList<String>();
 		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("redirectionUris")) {
 			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
 		}
-
 
 		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
 

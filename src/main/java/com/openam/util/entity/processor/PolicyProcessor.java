@@ -1,5 +1,7 @@
 package com.openam.util.entity.processor;
 
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,8 @@ public class PolicyProcessor {
 
 		if (!Policy.patternInternalOnlyPolicies.matcher(policyname).find() && !Policy.patternInternalMFAPolicies.matcher(policyname).find()
 				&& !Policy.patternExternalMFAPolicies.matcher(policyname).find() && !Policy.patternInternalCERTPolicies.matcher(policyname).find()
-				&& !Policy.patternClientFedPolicies.matcher(policyname).find()) {
+				&& !Policy.patternClientFedPolicies.matcher(policyname).find() && !Policy.patternInternalNoFallbackTreePolicies.matcher(policyname).find()
+				&& !Policy.patternInternalTreePWDPolicies.matcher(policyname).find()) {
 			return;
 		}
 

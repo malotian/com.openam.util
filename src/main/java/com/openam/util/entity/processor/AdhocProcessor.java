@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,7 +51,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.openam.util.Kontext;
 import com.openam.util.OpenAM;
-import com.openam.util.entity.Entity;
 import com.openam.util.entity.EntityID;
 
 @SpringBootApplication
@@ -74,10 +75,72 @@ public class AdhocProcessor implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		kontext.initilize("prod");
 		logger.debug("setting environment: {}", kontext.getEnvironment());
 
-		invaliEntities(args);
+		listPolicies(args);
 		logger.debug("AdhocProcessor.run");
+	}
+
+	public void listPolicies(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		List<String> rps = Arrays.asList("https://alt-xdp-se.pwcinternal.com/aas", "urn:insightsds.pwc.com", "learningrequests.pwc.com", "urn:eia:prd", "urn:ivd:prd", "urn:labs-hosted-apps",
+				"urn:p2p:web:prd", "urn:personalindependence.pwc.com", "urn:pwcusayp:prd", "https://pwc.sdelements.com", "https://pwc.sdelements.com/sso/saml2/metadata/",
+				"https://pwc.tfaforms.net/authenticator_saml/metadata", "https://aire-pm.pwc.com");
+
+		var policiies = openam.parsePolicies().get("result");
+
+		Map<String, HashSet<String>> rpPolicies = new HashMap<>();
+		rps.forEach(r -> rpPolicies.put(r, new HashSet<>()));
+
+		var e = openam.parsePolicies().get("result");
+
+		for (var policy : policiies) {
+			if (!policy.has("resources"))
+				continue;
+
+			var resources = new HashSet<>();
+			policy.get("resources").forEach(resource -> {
+				EntityID id = EntityID.ParseResourceEntry(resource.asText());
+				if (rpPolicies.containsKey(id.getID())) {
+					rpPolicies.get(id.getID()).add(policy.get("_id").asText());
+				}
+			});
+		}
+
+		rpPolicies.entrySet().stream().forEach(r -> {
+			logger.info("{}: [{}]", r.getKey(), String.join(", ", r.getValue()));
+		});
+	}
+
+	public void invaliEntitiesInMultipleCOT(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		HashMap<String, Set<String>> rps = new HashMap<>();
+		var cots = openam.parseCircleOfTrust().get("result");
+		var saml2Entities = openam.parseSaml2Entities().get("result");
+		var wsEntities = openam.parseWsEntities().get("result");
+
+		for (var entry : wsEntities) {
+			rps.put(entry.get("_id").asText(), new HashSet<String>());
+		}
+
+		for (var entry : saml2Entities) {
+			rps.put(entry.get("_id").asText(), new HashSet<String>());
+		}
+
+		for (var cot : cots) {
+			if (!cot.has("trustedProviders"))
+				continue;
+			cot.get("trustedProviders").forEach(provider -> {
+				final var id = EntityID.ParseProviderEntry(provider.asText()).getID();
+				if (rps.containsKey(id))
+					rps.get(id).add(cot.get("_id").asText());
+			});
+		}
+
+		rps.entrySet().stream().filter(e -> e.getValue().size() > 1).forEach(e -> {
+			logger.info("{}: [{}]", e.getKey(), String.join(", ", e.getValue()));
+		});
+
 	}
 
 	public void invaliEntities(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
