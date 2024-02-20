@@ -46,12 +46,20 @@ public class EntityHelper {
 		return getPolicies().stream().filter(e -> Policy.patternInternalMFAPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
+	public Set<Policy> getInternalNoFallbackTreePoliciesApplicable(final EntityID id) {
+		return getInternalNoFallbackTreePolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	}
+
 	public Set<Policy> getInternalNoFallbackTreePolicies() {
 		return getPolicies().stream().filter(e -> Policy.patternInternalNoFallbackTreePolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
 	public Set<Policy> getInternalTreePWDPolicies() {
 		return getPolicies().stream().filter(e -> Policy.patternInternalTreePWDPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getInternalTreePWDPoliciesApplicable(final EntityID id) {
+		return getInternalTreePWDPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
 	}
 
 	public Set<Policy> getInternalMFAPoliciesApplicable(final EntityID id) {
@@ -98,6 +106,18 @@ public class EntityHelper {
 		return reources;
 	}
 
+	public Set<EntityID> getResourcesInternalNoFallbackTreePolicies() {
+		final var reources = new HashSet<EntityID>();
+		getInternalNoFallbackTreePolicies().stream().forEach(p -> reources.addAll(p.getResources()));
+		return reources;
+	}
+
+	public Set<EntityID> getResourcesInternalTreePWDPolicies() {
+		final var reources = new HashSet<EntityID>();
+		getInternalTreePWDPolicies().stream().forEach(p -> reources.addAll(p.getResources()));
+		return reources;
+	}
+
 	public Set<Saml2> getSaml2Entities() {
 		return Entity.getAllEntities().values().stream().filter(e -> e instanceof Saml2).map(e -> (Saml2) e).collect(Collectors.toSet());
 	}
@@ -123,23 +143,26 @@ public class EntityHelper {
 	}
 
 	public void updateAuthAsPerPolicies(final Entity entity) {
-		if (getResourcesForInternalMFAPolicies().contains(entity)) {
-			final var policies = getInternalMFAPoliciesApplicable(entity);
+
+		EntityID lookup = new EntityID(entity.getID(), entity.getEntityType());
+
+		if (getResourcesForInternalMFAPolicies().contains(lookup)) {
+			final var policies = getInternalMFAPoliciesApplicable(lookup);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_MFA);
 			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
-		} else if (getResourcesForInternalCERTPolicies().contains(entity)) {
-			final var policies = getInternalCERTPoliciesApplicable(entity);
+		} else if (getResourcesForInternalCERTPolicies().contains(lookup)) {
+			final var policies = getInternalCERTPoliciesApplicable(lookup);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_CERT);
 			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
-		} else if (getInternalNoFallbackTreePolicies().contains(entity)) {
-			final var policies = getInternalCERTPoliciesApplicable(entity);
+		} else if (getResourcesInternalNoFallbackTreePolicies().contains(lookup)) {
+			final var policies = getInternalNoFallbackTreePoliciesApplicable(lookup);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_INTERNAL_NO_FALLBACK_TREE);
 			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
-		} else if (getInternalTreePWDPolicies().contains(entity)) {
-			final var policies = getInternalCERTPoliciesApplicable(entity);
+		} else if (getResourcesInternalTreePWDPolicies().contains(lookup)) {
+			final var policies = getInternalTreePWDPoliciesApplicable(lookup);
 			entity.addAttribute(Entity.INTERNAL_AUTH, Entity.AUTH_LEVEL_INTERNAL_PWD_TREE);
 			final var remarks = MessageFormat.format("INTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.INTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
@@ -149,13 +172,13 @@ public class EntityHelper {
 			entity.addRemarks(remarks);
 		}
 
-		if (getResourcesForExternalMFAPolices().contains(entity)) {
-			final var policies = getExternalMFAPoliciesApplicable(entity);
+		if (getResourcesForExternalMFAPolices().contains(lookup)) {
+			final var policies = getExternalMFAPoliciesApplicable(lookup);
 			entity.addAttribute(Entity.EXTERNAL_AUTH, "MFA");
 			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.EXTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);
-		} else if (getResourcesForInternalOnlyPolicies().contains(entity)) {
-			final var policies = getInternalOnlyPoliciesApplicable(entity);
+		} else if (getResourcesForInternalOnlyPolicies().contains(lookup)) {
+			final var policies = getInternalOnlyPoliciesApplicable(lookup);
 			entity.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
 			final var remarks = MessageFormat.format("EXTERNAL_AUTH: {0}, Policies: {1}", entity.getAttribute(Entity.EXTERNAL_AUTH), Util.json(policies.stream().map(Policy::getID).toArray()));
 			entity.addRemarks(remarks);

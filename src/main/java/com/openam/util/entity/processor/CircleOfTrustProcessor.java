@@ -3,6 +3,7 @@ package com.openam.util.entity.processor;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -78,14 +79,19 @@ public class CircleOfTrustProcessor {
 			CircleOfTrustProcessor.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
 		} else {
 			if (idps.size() > 1) {
-				final var helper = idps.stream().filter(idp -> idp.getID().contains("pwc")).collect(Collectors.toSet());
-				if (!helper.isEmpty()) {
-					idps = helper;
+				int maxMatches = 0;
+				EntityID idp = null;
+				for (var e : idps) {
+					int matches = countMatches(e.getID(), "pwc") + countMatches(e.getID(), ":") + countMatches(e.getID(), "urn");
+					if (matches > maxMatches) {
+						maxMatches = matches;
+						idp = e;
+					}
 				}
-
+				if (null != idp)
+					sps.remove(idp);
 			}
 
-			sps.remove(idps.stream().findFirst().get());
 		}
 
 		if (idps.size() > 1) {
@@ -134,6 +140,33 @@ public class CircleOfTrustProcessor {
 
 		});
 
+	}
+
+	public static String findMaxMatchString(List<String> strings) {
+		int maxMatches = 0;
+		String maxMatchString = null;
+
+		for (String str : strings) {
+			int matches = countMatches(str, "pwc") + countMatches(str, ":") + countMatches(str, "urn");
+			if (matches > maxMatches) {
+				maxMatches = matches;
+				maxMatchString = str;
+			}
+		}
+
+		return maxMatchString;
+	}
+
+	public static int countMatches(String str, String substring) {
+		int count = 0;
+		int idx = 0;
+
+		while ((idx = str.indexOf(substring, idx)) != -1) {
+			count++;
+			idx += substring.length();
+		}
+
+		return count;
 	}
 
 	private Set<EntityID> filterIdp(final Set<EntityID> trustedProviders, final boolean strict) {

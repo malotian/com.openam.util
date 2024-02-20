@@ -30,25 +30,25 @@ public class OAuth2ClientProcessor {
 	@Autowired
 	protected EntityHelper helper;
 
-	protected static Map<Integer, String> acrMap = new HashMap<>() {
+	protected static Map<String, String> acrMap = new HashMap<>() {
 		{
-			put(2, "MFA");
-			put(3, "test_entrust");
-			put(4, "CERT");
-			put(5, "internalChain");
-			put(6, "pwc-cert");
-			put(7, "ldapDJChain");
-			put(8, "AdminMFA");
-			put(100, "internal_mfa");
-			put(101, "internal_bypass");
-			put(102, "zt_device_registration");
-			put(103, "zt_change_device");
-			put(104, "mfa_oath");
-			put(105, "internal");
-			put(106, "internal_no_fallback");
-			put(107, "internal_mfa_trusted");
-			put(108, "admin");
-			put(109, "cyberark");
+			put("2", "MFA");
+			put("3", "test_entrust");
+			put("4", "CERT");
+			put("5", "internalChain");
+			put("6", "pwc-cert");
+			put("7", "ldapDJChain");
+			put("8", "AdminMFA");
+			put("100", "internal_mfa");
+			put("101", "internal_bypass");
+			put("102", "zt_device_registration");
+			put("103", "zt_change_device");
+			put("104", "mfa_oath");
+			put("105", "internal");
+			put("106", "internal_no_fallback");
+			put("107", "internal_mfa_trusted");
+			put("108", "admin");
+			put("109", "cyberark");
 		}
 	};
 

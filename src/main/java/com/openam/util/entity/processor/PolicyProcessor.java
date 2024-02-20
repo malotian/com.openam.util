@@ -34,6 +34,7 @@ public class PolicyProcessor {
 			return;
 		}
 
+		//logger.debug("processing policy: {}", policyname);
 		final var policy = new Policy(policyname);
 
 		policy.addAttribute(Entity.ACTIVE, json.get("active").asText());
