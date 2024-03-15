@@ -3,7 +3,6 @@ package com.openam.util.rest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -63,6 +62,9 @@ public class RestHelper {
 		// remove hosted
 		// https://www.netsparkercloud.com is neither remote nor hosted
 		// remove duplicates
+		final Set<String> setOf2025CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg",
+				"PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
+		final Set<String> setOf2031CertAlias = Set.of("pwcidentitysigning_stg_exp_2031", "pwcidentitysigning_prd_exp_2031");
 
 		result.put("COUNT_OAUTH", getAppEntititesOnly().filter(v -> EntityType.OAUTH2.equals(v.getEntityType())).count());
 		result.put("COUNT_SAML", getAppEntititesOnly().filter(v -> EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
@@ -70,62 +72,60 @@ public class RestHelper {
 		result.put("COUNT_WSFED", getAppEntititesOnly().filter(v -> EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
 
-		final var patternCOT2031 = Pattern.compile("31|2031");
-
 		result.put("COUNT_2025", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && !patternCOT2031.matcher(v.getAttribute(Entity.COT)).find())).count());
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias))).count());
 
 		result.put("COUNT_2025_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && !patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		result.put("COUNT_SAML2_2025", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && !patternCOT2031.matcher(v.getAttribute(Entity.COT)).find())).count());
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias))).count());
 
 		result.put("COUNT_SAML2_2025_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && !patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		result.put("COUNT_WSFED_2025", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && !patternCOT2031.matcher(v.getAttribute(Entity.COT)).find())).count());
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias))).count());
 
 		result.put("COUNT_WSFED_2025_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && !patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		/////////////////////////////////////////////////////////// 2031
 
 		result.put("COUNT_2031", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find())).count());
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias))).count());
 
 		result.put("COUNT_2031_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		result.put("COUNT_SAML2_2031", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find())).count());
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias))).count());
 
 		result.put("COUNT_SAML2_2031_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		result.put("COUNT_WSFED_2031", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find())).count());
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias))).count());
 
 		result.put("COUNT_WSFED_2031_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
-				&& v.hasAttribute(Entity.COT) && patternCOT2031.matcher(v.getAttribute(Entity.COT)).find() //
+				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) //

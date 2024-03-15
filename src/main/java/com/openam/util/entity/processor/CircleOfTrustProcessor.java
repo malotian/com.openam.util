@@ -122,18 +122,18 @@ public class CircleOfTrustProcessor {
 		cot.getSps().forEach(spID -> {
 			final var sp = Entity.get(spID);
 			sp.addAttribute(Entity.ASSIGNED_IDP, idp.getID());
-			if (idp.hasAttribute(Entity.CERT_ALIAS)) {
-				sp.addAttribute(Entity.CERT_ALIAS, idp.getAttribute(Entity.CERT_ALIAS));
+			if (idp.hasAttribute(Entity.SIGNING_CERT_ALIAS)) {
+				sp.addAttribute(Entity.SIGNING_CERT_ALIAS, idp.getAttribute(Entity.SIGNING_CERT_ALIAS));
 			}
-			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
+			if (idp.hasAttribute(Entity.INTERNAL_AUTH) && (!sp.hasAttribute(Entity.INTERNAL_AUTH) || Entity.AUTH_LEVEL_PWD.equals(sp.getAttribute(Entity.INTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
 				sp.addRemarks(MessageFormat.format("INTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
 			}
-			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || "PWD".equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
+			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && (!sp.hasAttribute(Entity.EXTERNAL_AUTH) || Entity.AUTH_LEVEL_PWD.equals(sp.getAttribute(Entity.EXTERNAL_AUTH)))) {
 				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
 				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 			}
-			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(idp.getAttribute(Entity.EXTERNAL_AUTH))) {
+			if (idp.hasAttribute(Entity.EXTERNAL_AUTH) && Entity.AUTH_LEVEL_NA.equals(idp.getAttribute(Entity.EXTERNAL_AUTH))) {
 				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
 				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 			}

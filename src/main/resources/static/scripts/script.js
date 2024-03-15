@@ -138,8 +138,8 @@ var columnDefs = [{
 	}
 },
 {
-	title: "REDIRECT-URLS",
-	field: "REDIRECT-URLS",
+	title: "SIGNING-CERT-ALIAS",
+	field: "SIGNING-CERT-ALIAS",
 	widthGrow: 3,
 	formatter: "textarea",
 	mutator: function(value, data, type, params, component) {
@@ -151,9 +151,17 @@ var columnDefs = [{
 	}
 },
 {
-	title: "CERT-ALIAS",
-	field: "CERT-ALIAS",
+	title: "REDIRECT-URLS",
+	field: "REDIRECT-URLS",
 	widthGrow: 3,
+	formatter: "textarea",
+	mutator: function(value, data, type, params, component) {
+		if (undefined == value)
+			return "";
+		const jsonArray = JSON.parse(value);
+		const multilineString = jsonArray.join('\n');
+		return multilineString;
+	}
 },
 {
 	title: "HOSTED-REMOTE",

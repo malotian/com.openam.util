@@ -161,13 +161,9 @@ public class Saml2Processor {
 
 		attributeMappers.forEach(am -> saml2.addRemarks(MessageFormat.format("ATTRIBUTE_MAPPER: {0}", am)));
 
-		final var signingCertAliases = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='signingCertAlias']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
-		final var certAlias = IntStream.range(0, signingCertAliases.getLength()).mapToObj(signingCertAliases::item).map(ca -> {
-			return ca.getTextContent();
-		}).collect(Collectors.toList());
-
-		if (!certAlias.isEmpty())
-			saml2.addAttribute(Entity.CERT_ALIAS, Util.json(certAlias));
+		final var idpSigningCertAlias = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='signingCertAlias']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+		final var signingCertAlias = IntStream.range(0, idpSigningCertAlias.getLength()).mapToObj(idpSigningCertAlias::item).map(Node::getTextContent).collect(Collectors.toList());
+		saml2.addAttribute(Entity.SIGNING_CERT_ALIAS, Util.json(signingCertAlias));
 
 	}
 

@@ -1,13 +1,19 @@
 package com.openam.util.entity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcabi.aspects.Loggable;
 import com.openam.util.Util;
 
@@ -16,10 +22,11 @@ public class Entity extends EntityID {
 	public static String ASSIGNED_IDP = "IDP";
 	public static String AUTH_LEVEL_CERT = "CERT";
 	public static String AUTH_LEVEL_MFA = "MFA";
+	public static String AUTH_LEVEL_PWD = "PWD";
+	public static String AUTH_LEVEL_NA = "N/A";
 	public static String AUTH_LEVEL_INTERNAL_NO_FALLBACK_TREE = "INTERNAL_NO_FALLBACK_TREE";
 	public static String AUTH_LEVEL_INTERNAL_PWD_TREE = "INTERNAL_NO_PWD_TREE";
-	
-	
+
 	public static String COT = "COT";
 	private static HashMap<EntityID, Entity> entities = new HashMap<>();
 	public static String EXTERNAL_AUTH = "EXT";
@@ -29,16 +36,17 @@ public class Entity extends EntityID {
 	public static String IDENTITY_PROVIDER = "IDP";
 
 	public static String INTERNAL_AUTH = "INT";
+
 	private static String REMARKS = "REMARKS";
 
 	public static String REMOTE = "REMOTE";
 	public static String ACCOUNT_MAPPER = "ACCOUNT-MAPPER";
 	public static String ATTRIBUTE_MAPPER = "ATTRIBUTE-MAPPER";
-	public static String CERT_ALIAS = "CERT-ALIAS";
 
 	public static String SERVICE_PROVIDER = "SP";
 
 	public static String SP_IDP = "SP-IDP";
+	public static String SIGNING_CERT_ALIAS = "SIGNING-CERT-ALIAS";
 	public static String REDIRECT_URLS = "REDIRECT-URLS";
 	public static String CLAIMS = "CLAIMS";
 
@@ -55,6 +63,7 @@ public class Entity extends EntityID {
 	public static Pattern patternPwCIdentityWsfedIDPAccountMapper = Pattern.compile("com.pwc.pwcidentity.openam.accountmapper.PwCIdentityWsfedIDPAccountMapper");
 
 	private static final Logger logger = LoggerFactory.getLogger(Entity.class);
+	private static ObjectMapper mapper = new ObjectMapper();
 
 	public static Entity get(final EntityID eid) {
 		return Entity.entities.get(eid);
@@ -103,17 +112,29 @@ public class Entity extends EntityID {
 
 	public boolean hasAttribute(final String attribute) {
 		return attributes.containsKey(attribute);
-
 	}
-	
-    public static void main(String[] args) {
-        String input = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|123|service=pwc-cert|default";
-        Pattern pattern = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
-        Matcher matcher = pattern.matcher(input);
 
-        if (matcher.find()) {
-            String groupText = matcher.group(1); // This will select the text in group CERT|MFA
-            System.out.println(groupText);
-        }
-    }	
+	public boolean doesJsonArrayAttributeContains(final String attribute, Set<String> expeced) {
+		if (!hasAttribute(attribute))
+			return false;
+		HashSet<String> helper = new HashSet<>();
+		try {
+			helper = new HashSet<String>(Arrays.asList(mapper.readValue(getAttribute(attribute), String[].class)));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		helper.retainAll(expeced);
+		return !helper.isEmpty();
+	}
+
+	public static void main(String[] args) {
+		String input = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|123|service=pwc-cert|default";
+		Pattern pattern = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
+		Matcher matcher = pattern.matcher(input);
+
+		if (matcher.find()) {
+			String groupText = matcher.group(1); // This will select the text in group CERT|MFA
+			System.out.println(groupText);
+		}
+	}
 }

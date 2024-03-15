@@ -147,6 +147,12 @@ public class WsfedProcessor {
 		}).collect(Collectors.toList());
 
 		attributeMappers.forEach(am -> wsfed.addRemarks(MessageFormat.format("ATTRIBUTE_MAPPER: {0}", am)));
+		
+		final var idpSigningCertAlias = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='signingCertAlias']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+		final var signingCertAlias = IntStream.range(0, idpSigningCertAlias.getLength()).mapToObj(idpSigningCertAlias::item).map(Node::getTextContent).collect(Collectors.toList());
+		wsfed.addAttribute(Entity.SIGNING_CERT_ALIAS, Util.json(signingCertAlias));
+		
+		
 	}
 
 	private void _processSP(final Wsfed wsfed, final Document xmlMetadata, final Document xmlEntityConfig, final XPath xPath) throws XPathExpressionException {
