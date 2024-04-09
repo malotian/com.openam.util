@@ -3,7 +3,6 @@ package com.openam.util.entity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,8 +10,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcabi.aspects.Loggable;
 import com.openam.util.Util;
@@ -114,17 +111,18 @@ public class Entity extends EntityID {
 		return attributes.containsKey(attribute);
 	}
 
-	public boolean doesJsonArrayAttributeContains(final String attribute, Set<String> expeced) {
+	public boolean doesJsonArrayAttributeContains(final String attribute, final Set<String> expected) {
 		if (!hasAttribute(attribute))
 			return false;
-		HashSet<String> helper = new HashSet<>();
+
 		try {
-			helper = new HashSet<String>(Arrays.asList(mapper.readValue(getAttribute(attribute), String[].class)));
-		} catch (JsonProcessingException e) {
+			String[] jsonArray = mapper.readValue(getAttribute(attribute), String[].class);
+			return Arrays.stream(jsonArray).anyMatch(expected::contains);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		helper.retainAll(expeced);
-		return !helper.isEmpty();
+		return false;
+
 	}
 
 	public static void main(String[] args) {

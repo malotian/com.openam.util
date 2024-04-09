@@ -72,37 +72,26 @@ public class CircleOfTrustProcessor {
 		}
 
 		cot.setIdps(idps);
+
+		var idp = Entity.get(cot.getIdp());
+		if (null != idp) {
+			idp.addRemarks(MessageFormat.format("COT: {0}", id));
+			sps.remove(idp);
+		}
+
 		cot.setSps(sps);
+		cot.getSps().stream().map(Entity::get).forEach(entity -> entity.addAttribute(Entity.COT, cot.getID()));
 
 		// we will remove first one only from lits of sps
 		if (idps.isEmpty()) {
 			CircleOfTrustProcessor.logger.warn("skipping, no idps(strict=false) in cot: {}", cot.getID());
-		} else {
-			if (idps.size() > 1) {
-				int maxMatches = 0;
-				EntityID idp = null;
-				for (var e : idps) {
-					int matches = countMatches(e.getID(), "pwc") + countMatches(e.getID(), ":") + countMatches(e.getID(), "urn");
-					if (matches > maxMatches) {
-						maxMatches = matches;
-						idp = e;
-					}
-				}
-				if (null != idp)
-					sps.remove(idp);
-			}
-
 		}
 
 		if (idps.size() > 1) {
 			CircleOfTrustProcessor.logger.warn("warning, multiple idps: {} in cot: {}", Util.json(idps), cot.getID());
-			final var remarks = MessageFormat.format("IDP(s): {0}, By default first will be used", Util.json(idps.stream().map(EntityID::getID).toArray()));
+			final var remarks = MessageFormat.format("IDP(s): {0}, By default idp containing of urn|pwc|: or first will be used", Util.json(idps.stream().map(EntityID::getID).toArray()));
 			cot.addRemarks(remarks);
 		}
-
-		cot.setSps(sps);
-		cot.setIdps(idps);
-		cot.getSps().forEach(sp -> Entity.get(sp).addAttribute(Entity.COT, cot.getID()));
 
 		if (!cot.hasIdp()) {
 			cot.addRemarks("IDP(s): None");
@@ -111,9 +100,6 @@ public class CircleOfTrustProcessor {
 
 		cot.addAttribute(Entity.ASSIGNED_IDP, cot.getIdp().getID());
 		cot.addRemarks(MessageFormat.format("ASSIGNED-IDP: {0}", cot.getIdp().getID()));
-
-		final var idp = Entity.get(cot.getIdp());
-		idp.addRemarks(MessageFormat.format("COT: {0}", id));
 
 		cot.addAttribute(Entity.INTERNAL_AUTH, idp.getAttribute(Entity.INTERNAL_AUTH));
 		cot.addRemarks(MessageFormat.format("INTERNAL_AUTH: {0}, IDP: {1}", idp.getAttribute(Entity.INTERNAL_AUTH), idp.getID()));
