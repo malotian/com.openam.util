@@ -18,9 +18,6 @@ import com.openam.util.entity.Policy;
 @Component
 public class StatsCalculator {
 
-	private static final Set<String> SET_OF_2025_CERT_ALIAS = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg", "PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
-
-	private static final Set<String> SET_OF_2031_CERT_ALIAS = Set.of("pwcidentitysigning_stg_exp_2031", "pwcidentitysigning_prd_exp_2031");
 	@Autowired
 	EntityHelper entityHelper;
 
@@ -70,19 +67,13 @@ public class StatsCalculator {
 	public HashMap<String, Long> stats() {
 		final var result = new HashMap<String, Long>();
 
-		final Set<String> setOf2025CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg", "PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
-		final Set<String> setOf2031CertAlias = Set.of("pwcidentitysigning_stg_exp_2031", "pwcidentitysigning_prd_exp_2031");
+		final var setOf2025CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg", "PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
+		final var setOf2031CertAlias = Set.of("pwcidentitysigning_stg_exp_2031", "pwcidentitysigning_prd_exp_2031");
+		final var attribuesRemoteServiceProvider = List.of(ImmutablePair.of(Entity.SP_IDP, Entity.SERVICE_PROVIDER), ImmutablePair.of(Entity.HOSTED_REMOTE, Entity.REMOTE));
 
 		result.put("COUNT_OAUTH", getStreamOfAppEntititesWithSepcficAttributes(EntityType.OAUTH2, null).count());
-
-		result.put("COUNT_SAML",
-				getStreamOfAppEntititesWithSepcficAttributes(EntityType.SAML2, List.of(ImmutablePair.of(Entity.SP_IDP, Entity.SERVICE_PROVIDER), ImmutablePair.of(Entity.HOSTED_REMOTE, Entity.REMOTE)))
-						.count());
-
-		result.put("COUNT_WSFED",
-				getStreamOfAppEntititesWithSepcficAttributes(EntityType.WSFED, List.of(ImmutablePair.of(Entity.SP_IDP, Entity.SERVICE_PROVIDER), ImmutablePair.of(Entity.HOSTED_REMOTE, Entity.REMOTE)))
-						.count());
-
+		result.put("COUNT_SAML", getStreamOfAppEntititesWithSepcficAttributes(EntityType.SAML2, attribuesRemoteServiceProvider).count());
+		result.put("COUNT_WSFED", getStreamOfAppEntititesWithSepcficAttributes(EntityType.WSFED, attribuesRemoteServiceProvider).count());
 		result.put("COUNT_2025", getStreamOfAppEntititesWithSpecficCertAlias(setOf2025CertAlias).count());
 		result.put("COUNT_2025_INTERNAL_ONLY", getStreamOfInternalAppEntititesSpecficCertAlias(setOf2025CertAlias).count());
 		result.put("COUNT_SAML2_2025", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.SAML2, setOf2025CertAlias).count());
