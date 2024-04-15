@@ -93,31 +93,6 @@ public class OpenAM {
 		return restKlient.login("/json/realms/root/authenticate?authIndexType=service&authIndexValue=ldapService");
 	}
 
-	public boolean processEntities(boolean refresh) throws ClientProtocolException, IOException {
-
-		if (refresh && !login()) {
-			return false;
-		}
-	
-
-		var result = refresh ? fetchPolicies() : parsePolicies();
-		policyProcessor.process(result);
-
-		result = refresh ? fetchWs() : parseWsEntities();
-		wsfedProcessor.process(result);
-
-		result = refresh ? fetchOAuth2() : parseOAuth2Entities();
-		oAuth2ClientProcessor.process(result);
-
-		result = refresh ? fetchSaml2() : parseSaml2Entities();
-		saml2Processor.process(result);
-
-		result = refresh ? fetchCircleOfTrust() : parseCircleOfTrust();
-		circleOfTrustProcessor.process(result);
-
-		return true;
-	}
-
 	public JsonNode parseCircleOfTrust() throws IOException, StreamReadException, DatabindException {
 		return getMapper().readValue(kontext.file("jsonCircleOfTrust.json"), JsonNode.class);
 	}
@@ -136,6 +111,30 @@ public class OpenAM {
 
 	public JsonNode parseWsEntities() throws IOException, StreamReadException, DatabindException {
 		return getMapper().readValue(kontext.file("jsonWsEntities.json"), JsonNode.class);
+	}
+
+	public boolean processEntities(final boolean refresh) throws ClientProtocolException, IOException {
+
+		if (refresh && !login()) {
+			return false;
+		}
+
+		var result = refresh ? fetchPolicies() : parsePolicies();
+		policyProcessor.process(result);
+
+		result = refresh ? fetchWs() : parseWsEntities();
+		wsfedProcessor.process(result);
+
+		result = refresh ? fetchOAuth2() : parseOAuth2Entities();
+		oAuth2ClientProcessor.process(result);
+
+		result = refresh ? fetchSaml2() : parseSaml2Entities();
+		saml2Processor.process(result);
+
+		result = refresh ? fetchCircleOfTrust() : parseCircleOfTrust();
+		circleOfTrustProcessor.process(result);
+
+		return true;
 	}
 
 	public void setKonfiguration(final Konfiguration konfiguration) {

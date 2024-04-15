@@ -23,21 +23,21 @@ public class Util {
 		return null;
 	}
 
+	public static String jsonNormalizeSize(final List<String> list) {
+		var helper = Util.json(list);
+		while (helper.length() > 30000) {
+			final var list2 = list.stream().limit(list.size() - 100).collect(Collectors.toList());
+			list2.add("truncated-long-list");
+			helper = Util.json(list2);
+		}
+		return helper;
+	}
+
 	public static void write(final File file, final Object obj) throws IOException {
 		try {
 			Util.mapper.writeValue(file, obj);
 		} catch (final JsonProcessingException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static String jsonNormalizeSize(final List<String> list) {
-		String helper = Util.json(list);
-		while (helper.length() > 30000) {
-			var list2 = list.stream().limit(list.size() - 100).collect(Collectors.toList());
-			list2.add("truncated-long-list");
-			helper = Util.json(list2);
-		}
-		return helper;
 	}
 }

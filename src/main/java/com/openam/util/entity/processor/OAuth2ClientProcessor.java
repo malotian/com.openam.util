@@ -27,10 +27,9 @@ public class OAuth2ClientProcessor {
 
 	static final Logger logger = LoggerFactory.getLogger(OAuth2ClientProcessor.class);
 
-	@Autowired
-	protected EntityHelper helper;
-
 	protected static Map<String, String> acrMap = new HashMap<>() {
+		private static final long serialVersionUID = 1L;
+
 		{
 			put("2", "MFA");
 			put("3", "test_entrust");
@@ -51,6 +50,9 @@ public class OAuth2ClientProcessor {
 			put("109", "cyberark");
 		}
 	};
+
+	@Autowired
+	protected EntityHelper helper;
 
 	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
 		final var id = json.get("_id").asText();
@@ -74,8 +76,8 @@ public class OAuth2ClientProcessor {
 			final var remarks1 = MessageFormat.format("EXTERNAL_AUTH: {0}, acrs: {1}", oauth2Client.getAttribute(Entity.EXTERNAL_AUTH), Util.json(acrs));
 			oauth2Client.addRemarks(remarks1);
 			acrs.forEach(acr -> {
-				if (acrMap.containsKey(acr)) {
-					oauth2Client.addAttribute(Entity.INTERNAL_AUTH, acrMap.get(acr));
+				if (OAuth2ClientProcessor.acrMap.containsKey(acr)) {
+					oauth2Client.addAttribute(Entity.INTERNAL_AUTH, OAuth2ClientProcessor.acrMap.get(acr));
 					final var remarks2 = MessageFormat.format("INTERNAL_AUTH: {0}, acr: {1}", oauth2Client.getAttribute(Entity.INTERNAL_AUTH), Util.json(acr));
 					oauth2Client.addRemarks(remarks2);
 				}

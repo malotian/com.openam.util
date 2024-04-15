@@ -4,8 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,15 +18,13 @@ import com.openam.util.entity.Policy;
 @Component
 public class RestHelper {
 
+	private static final Logger logger = LoggerFactory.getLogger(RestHelper.class);
+
 	@Autowired
 	EntityHelper entityHelper;
 
-	public Stream<Entity> getAppEntititesOnly() {
-		return Entity.getAllEntities().values().stream()
-				.filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType()) || EntityType.OAUTH2.equals(v.getEntityType()))
-						&& (!v.hasAttribute(Entity.HOSTED_REMOTE) || v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE))
-						&& (!v.hasAttribute(Entity.SP_IDP) || v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))));
-	}
+	@Autowired
+	StatsCalculator statsCalculator;
 
 	public Set<Map<String, String>> getEntitiesTable() {
 		return Entity.getAllEntities().values().stream().filter(v -> !EntityType.POLICY.equals(v.getEntityType())).map(v -> {
@@ -36,19 +35,8 @@ public class RestHelper {
 		}).collect(Collectors.toSet());
 	}
 
-//	public Set<Map<String, String>> getEntitiesTable2() {
-//		return getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))).map(v -> {
-//			final var copy = new HashMap<String, String>();
-//			copy.put("ID", v.getID());
-//			copy.put("TYPE", v.getEntityType().toString());
-//			copy.put(Entity.HOSTED_REMOTE, v.getAttribute(Entity.HOSTED_REMOTE));
-//			copy.put(Entity.SP_IDP, v.getAttribute(Entity.SP_IDP));
-//			return copy;
-//		}).collect(Collectors.toSet());
-//	}
-
 	public Set<Map<String, String>> getStatsTable() {
-		return stats().entrySet().stream().map(e -> {
+		return statsCalculator.stats().entrySet().stream().map(e -> {
 			final var copy = new HashMap<String, String>();
 			copy.put("ID", e.getKey() + ": " + e.getValue().toString());
 			copy.put("TYPE", "STAT");
@@ -62,68 +50,67 @@ public class RestHelper {
 		// remove hosted
 		// https://www.netsparkercloud.com is neither remote nor hosted
 		// remove duplicates
-		final Set<String> setOf2025CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg",
-				"PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
+		final Set<String> setOf2025CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg", "PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
 		final Set<String> setOf2031CertAlias = Set.of("pwcidentitysigning_stg_exp_2031", "pwcidentitysigning_prd_exp_2031");
 
-		result.put("COUNT_OAUTH", getAppEntititesOnly().filter(v -> EntityType.OAUTH2.equals(v.getEntityType())).count());
-		result.put("COUNT_SAML", getAppEntititesOnly().filter(v -> EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
+		result.put("COUNT_OAUTH", entityHelper.getStreamOfAppEntititesOnly().filter(v -> EntityType.OAUTH2.equals(v.getEntityType())).count());
+		result.put("COUNT_SAML", entityHelper.getStreamOfAppEntititesOnly().filter(v -> EntityType.SAML2.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
-		result.put("COUNT_WSFED", getAppEntititesOnly().filter(v -> EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
+		result.put("COUNT_WSFED", entityHelper.getStreamOfAppEntititesOnly().filter(v -> EntityType.WSFED.equals(v.getEntityType()) && v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE)).count());
 
-		result.put("COUNT_2025", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
+		result.put("COUNT_2025", entityHelper.getStreamOfAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias))).count());
 
-		result.put("COUNT_2025_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
+		result.put("COUNT_2025_INTERNAL_ONLY", entityHelper.getStreamOfAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
-		result.put("COUNT_SAML2_2025", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
+		result.put("COUNT_SAML2_2025", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias))).count());
 
-		result.put("COUNT_SAML2_2025_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
+		result.put("COUNT_SAML2_2025_INTERNAL_ONLY", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
-		result.put("COUNT_WSFED_2025", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
+		result.put("COUNT_WSFED_2025", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias))).count());
 
-		result.put("COUNT_WSFED_2025_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
+		result.put("COUNT_WSFED_2025_INTERNAL_ONLY", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2025CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
 		/////////////////////////////////////////////////////////// 2031
 
-		result.put("COUNT_2031", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
+		result.put("COUNT_2031", entityHelper.getStreamOfAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias))).count());
 
-		result.put("COUNT_2031_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
+		result.put("COUNT_2031_INTERNAL_ONLY", entityHelper.getStreamOfAppEntititesOnly().filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType())) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
-		result.put("COUNT_SAML2_2031", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
+		result.put("COUNT_SAML2_2031", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias))).count());
 
-		result.put("COUNT_SAML2_2031_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
+		result.put("COUNT_SAML2_2031_INTERNAL_ONLY", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.SAML2.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
-		result.put("COUNT_WSFED_2031", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
+		result.put("COUNT_WSFED_2031", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias))).count());
 
-		result.put("COUNT_WSFED_2031_INTERNAL_ONLY", getAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
+		result.put("COUNT_WSFED_2031_INTERNAL_ONLY", entityHelper.getStreamOfAppEntititesOnly().filter(v -> (EntityType.WSFED.equals(v.getEntityType()) //
 				&& v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER) //
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());

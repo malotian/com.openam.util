@@ -1,7 +1,5 @@
 package com.openam.util.entity.processor;
 
-import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +32,7 @@ public class PolicyProcessor {
 			return;
 		}
 
-		//logger.debug("processing policy: {}", policyname);
+		// logger.debug("processing policy: {}", policyname);
 		final var policy = new Policy(policyname);
 
 		policy.addAttribute(Entity.ACTIVE, json.get("active").asText());

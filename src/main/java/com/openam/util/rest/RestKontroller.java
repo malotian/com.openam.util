@@ -80,18 +80,18 @@ public class RestKontroller {
 	}
 
 	@GetMapping("/shutdown")
-	public String shutdown(HttpServletRequest request) {
-		String requestURL = request.getRequestURL().substring(0, request.getRequestURL().indexOf(request.getRequestURI()));
-		String uri = requestURL + "/actuator/shutdown";
+	public String shutdown(final HttpServletRequest request) {
+		final var requestURL = request.getRequestURL().substring(0, request.getRequestURL().indexOf(request.getRequestURI()));
+		final var uri = requestURL + "/actuator/shutdown";
 
-		HttpHeaders headers = new HttpHeaders();
+		final var headers = new HttpHeaders();
 
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
-		HttpEntity<String> entity = new HttpEntity<>(null, headers);
+		final var entity = new HttpEntity<String>(null, headers);
 
-		RestTemplate restTemplate = new RestTemplate();
+		final var restTemplate = new RestTemplate();
 		restTemplate.postForLocation(uri, entity);
 		return "OK";
 	}

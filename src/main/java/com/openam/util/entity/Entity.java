@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -79,6 +78,17 @@ public class Entity extends EntityID {
 		Entity.entities = new HashMap<>();
 	}
 
+	public static void main(final String[] args) {
+		final var input = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|123|service=pwc-cert|default";
+		final var pattern = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
+		final var matcher = pattern.matcher(input);
+
+		if (matcher.find()) {
+			final var groupText = matcher.group(1); // This will select the text in group CERT|MFA
+			System.out.println(groupText);
+		}
+	}
+
 	protected HashMap<String, String> attributes = new HashMap<>();
 
 	ArrayList<String> remarks = new ArrayList<>();
@@ -98,6 +108,21 @@ public class Entity extends EntityID {
 		attributes.put(Entity.REMARKS, Util.json(remarks));
 	}
 
+	public boolean doesJsonArrayAttributeContains(final String attribute, final Set<String> expected) {
+		if (!hasAttribute(attribute)) {
+			return false;
+		}
+
+		try {
+			final var jsonArray = Entity.mapper.readValue(getAttribute(attribute), String[].class);
+			return Arrays.stream(jsonArray).anyMatch(expected::contains);
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+
+	}
+
 	public String getAttribute(final String attribute) {
 		return attributes.get(attribute);
 
@@ -109,30 +134,5 @@ public class Entity extends EntityID {
 
 	public boolean hasAttribute(final String attribute) {
 		return attributes.containsKey(attribute);
-	}
-
-	public boolean doesJsonArrayAttributeContains(final String attribute, final Set<String> expected) {
-		if (!hasAttribute(attribute))
-			return false;
-
-		try {
-			String[] jsonArray = mapper.readValue(getAttribute(attribute), String[].class);
-			return Arrays.stream(jsonArray).anyMatch(expected::contains);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
-
-	}
-
-	public static void main(String[] args) {
-		String input = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport|123|service=pwc-cert|default";
-		Pattern pattern = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
-		Matcher matcher = pattern.matcher(input);
-
-		if (matcher.find()) {
-			String groupText = matcher.group(1); // This will select the text in group CERT|MFA
-			System.out.println(groupText);
-		}
 	}
 }

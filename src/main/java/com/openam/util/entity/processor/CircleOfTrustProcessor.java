@@ -29,6 +29,33 @@ public class CircleOfTrustProcessor {
 
 	static final Logger logger = LoggerFactory.getLogger(CircleOfTrustProcessor.class);
 
+	public static int countMatches(final String str, final String substring) {
+		var count = 0;
+		var idx = 0;
+
+		while ((idx = str.indexOf(substring, idx)) != -1) {
+			count++;
+			idx += substring.length();
+		}
+
+		return count;
+	}
+
+	public static String findMaxMatchString(final List<String> strings) {
+		var maxMatches = 0;
+		String maxMatchString = null;
+
+		for (final String str : strings) {
+			final var matches = CircleOfTrustProcessor.countMatches(str, "pwc") + CircleOfTrustProcessor.countMatches(str, ":") + CircleOfTrustProcessor.countMatches(str, "urn");
+			if (matches > maxMatches) {
+				maxMatches = matches;
+				maxMatchString = str;
+			}
+		}
+
+		return maxMatchString;
+	}
+
 	@Autowired
 	protected EntityHelper helper;
 
@@ -73,7 +100,7 @@ public class CircleOfTrustProcessor {
 
 		cot.setIdps(idps);
 
-		var idp = Entity.get(cot.getIdp());
+		final var idp = Entity.get(cot.getIdp());
 		if (null != idp) {
 			idp.addRemarks(MessageFormat.format("COT: {0}", id));
 			sps.remove(idp);
@@ -126,33 +153,6 @@ public class CircleOfTrustProcessor {
 
 		});
 
-	}
-
-	public static String findMaxMatchString(List<String> strings) {
-		int maxMatches = 0;
-		String maxMatchString = null;
-
-		for (String str : strings) {
-			int matches = countMatches(str, "pwc") + countMatches(str, ":") + countMatches(str, "urn");
-			if (matches > maxMatches) {
-				maxMatches = matches;
-				maxMatchString = str;
-			}
-		}
-
-		return maxMatchString;
-	}
-
-	public static int countMatches(String str, String substring) {
-		int count = 0;
-		int idx = 0;
-
-		while ((idx = str.indexOf(substring, idx)) != -1) {
-			count++;
-			idx += substring.length();
-		}
-
-		return count;
 	}
 
 	private Set<EntityID> filterIdp(final Set<EntityID> trustedProviders, final boolean strict) {

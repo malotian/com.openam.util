@@ -3,8 +3,8 @@ package com.openam.util.entity;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
@@ -46,24 +46,16 @@ public class EntityHelper {
 		return getPolicies().stream().filter(e -> Policy.patternInternalMFAPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
-	public Set<Policy> getInternalNoFallbackTreePoliciesApplicable(final EntityID id) {
-		return getInternalNoFallbackTreePolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	public Set<Policy> getInternalMFAPoliciesApplicable(final EntityID id) {
+		return getInternalMFAPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
 	}
 
 	public Set<Policy> getInternalNoFallbackTreePolicies() {
 		return getPolicies().stream().filter(e -> Policy.patternInternalNoFallbackTreePolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
 	}
 
-	public Set<Policy> getInternalTreePWDPolicies() {
-		return getPolicies().stream().filter(e -> Policy.patternInternalTreePWDPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
-	}
-
-	public Set<Policy> getInternalTreePWDPoliciesApplicable(final EntityID id) {
-		return getInternalTreePWDPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
-	}
-
-	public Set<Policy> getInternalMFAPoliciesApplicable(final EntityID id) {
-		return getInternalMFAPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	public Set<Policy> getInternalNoFallbackTreePoliciesApplicable(final EntityID id) {
+		return getInternalNoFallbackTreePolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
 	}
 
 	public Set<Policy> getInternalOnlyPolicies() {
@@ -72,6 +64,14 @@ public class EntityHelper {
 
 	public Set<Policy> getInternalOnlyPoliciesApplicable(final EntityID id) {
 		return getInternalOnlyPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getInternalTreePWDPolicies() {
+		return getPolicies().stream().filter(e -> Policy.patternInternalTreePWDPolicies.matcher(e.getID()).find()).collect(Collectors.toSet());
+	}
+
+	public Set<Policy> getInternalTreePWDPoliciesApplicable(final EntityID id) {
+		return getInternalTreePWDPolicies().stream().filter(p -> p.getResources().contains(id)).collect(Collectors.toSet());
 	}
 
 	public Set<OAuth2Client> getOAuth2Clients() {
@@ -130,6 +130,13 @@ public class EntityHelper {
 		return getSaml2Entities().stream().filter(e -> e.hasAttribute(Entity.SERVICE_PROVIDER)).collect(Collectors.toSet());
 	}
 
+	public Stream<Entity> getStreamOfAppEntititesOnly() {
+		return Entity.getAllEntities().values().stream()
+				.filter(v -> ((EntityType.SAML2.equals(v.getEntityType()) || EntityType.WSFED.equals(v.getEntityType()) || EntityType.OAUTH2.equals(v.getEntityType()))
+						&& (!v.hasAttribute(Entity.HOSTED_REMOTE) || v.getAttribute(Entity.HOSTED_REMOTE).equals(Entity.REMOTE))
+						&& (!v.hasAttribute(Entity.SP_IDP) || v.getAttribute(Entity.SP_IDP).equals(Entity.SERVICE_PROVIDER))));
+	}
+
 	public Set<Wsfed> getWsfedEntities() {
 		return Entity.getAllEntities().values().stream().filter(e -> e instanceof Wsfed).map(e -> (Wsfed) e).collect(Collectors.toSet());
 	}
@@ -144,7 +151,7 @@ public class EntityHelper {
 
 	public void updateAuthAsPerPolicies(final Entity entity) {
 
-		EntityID lookup = new EntityID(entity.getID(), entity.getEntityType());
+		final var lookup = new EntityID(entity.getID(), entity.getEntityType());
 
 		if (getResourcesForInternalMFAPolicies().contains(lookup)) {
 			final var policies = getInternalMFAPoliciesApplicable(lookup);

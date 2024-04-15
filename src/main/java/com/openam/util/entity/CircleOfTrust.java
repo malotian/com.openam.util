@@ -3,7 +3,6 @@ package com.openam.util.entity;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -14,87 +13,19 @@ public class CircleOfTrust extends Entity {
 
 	private static final Logger logger = LoggerFactory.getLogger(CircleOfTrust.class);
 
-	private Set<EntityID> idps = new HashSet<>();
-
-	private Set<EntityID> sps = new HashSet<>();
-
-	public CircleOfTrust(final String id) {
-		super(id, EntityType.CIRCLE_OF_TRUST);
-	}
-
-	public EntityID getIdp() {
-		int maxMatches = 0;
-		EntityID maxMatchIDP = null;
-
-		Set<String> tokens = new HashSet<>(Arrays.asList(getID().split("_")));
-		// Replace specific strings and prefix/suffix single character strings
-		tokens = tokens.stream().map(token -> token.length() == 1 ? ":" + token : token.equals("2025") ? "25" : token.equals("2031") ? "31" : token).collect(Collectors.toSet());
-		tokens.add("urn");
-
-		String regexPattern = "(" + String.join("|", tokens) + ")";
-		Pattern pattern = Pattern.compile(regexPattern);
-
-		for (var idp : idps) {
-			Matcher matcher = pattern.matcher(idp.getID());
-
-			int count = 0;
-			while (matcher.find()) {
-				count++;
-			}
-			int matches = count;
-			if (matches > maxMatches) {
-				maxMatches = matches;
-				maxMatchIDP = idp;
-			}
-		}
-
-		if (null == maxMatchIDP) {
-			if (!idps.isEmpty()) {
-				maxMatchIDP = idps.stream().findFirst().get();
-			}
-		}
-
-		sps.remove(maxMatchIDP);
-		return maxMatchIDP;
-	}
-
-	public EntityID setIdp() {
-		return getIdps().stream().findFirst().get();
-	}
-
-	public Set<EntityID> getIdps() {
-		return idps;
-	}
-
-	public Set<EntityID> getSps() {
-		return sps;
-	}
-
-	public boolean hasIdp() {
-		return getIdps().stream().findFirst().isPresent();
-	}
-
-	public void setIdps(final Set<EntityID> idps) {
-		this.idps = idps;
-	}
-
-	public void setSps(final Set<EntityID> sps) {
-		this.sps = sps;
-	}
-
-	public static void main(String[] args) {
-		String input = "pwc_pwd_mail_wsfed_s_2025";
+	public static void main(final String[] args) {
+		final var input = "pwc_pwd_mail_wsfed_s_2025";
 		Set<String> tokens = new HashSet<>(Arrays.asList(input.split("_")));
 		// Replace specific strings and prefix/suffix single character strings
-		tokens = tokens.stream().map(token -> token.length() == 1 ? ":" + token : token.equals("2025") ? "25" : token.equals("2031") ? "31" : token).collect(Collectors.toSet());
+		tokens = tokens.stream().map(token -> token.length() == 1 ? ":" + token : "2025".equals(token) ? "25" : "2031".equals(token) ? "31" : token).collect(Collectors.toSet());
 		tokens.add("urn");
 
-		String regexPattern = "(" + String.join("|", tokens) + ")";
-		Pattern pattern = Pattern.compile(regexPattern);
+		final var regexPattern = "(" + String.join("|", tokens) + ")";
+		final var pattern = Pattern.compile(regexPattern);
 
 		System.out.println("Regex Pattern: " + regexPattern);
 
-		var idps = Arrays.asList("https://onlineaccounting-stage.pwc.com/UK_NAV/", "urn:linkia-poc-cloud:poc", "urn:stockbasisep-dev.pwcinternal.com", "urn:us.policyondemand-stg:tax:us",
+		final var idps = Arrays.asList("https://onlineaccounting-stage.pwc.com/UK_NAV/", "urn:linkia-poc-cloud:poc", "urn:stockbasisep-dev.pwcinternal.com", "urn:us.policyondemand-stg:tax:us",
 				"urn:autoprep-dev.pwcinternal.com/", "urn:sharepoint:dmz-mysite-dev", "urn:starsportal-qa.pwc.com:starsencaptureportal-qa:urn", "https://us-planning-stg.pwcinternal.com/",
 				"https://global-egrc-dev.pwcinternal.com/archer-dev/default.aspx?/archer-dev/", "https://stgcentralisedscanningreports.pwcinternal.com/", "urn:stockbasisep-tst.pwcinternal.com",
 				"https://starsadminportal-dev.pwc.com/Pages/Home.aspx/", "https://nr-returns-stgazure.pwcinternal.com/", "https://C2CIgnite-stg.pwcinternal.com/",
@@ -122,26 +53,92 @@ public class CircleOfTrust extends Entity {
 
 		// idps = Arrays.asList("http://adfs-bos.sydneyplus.com/adfs/services/trust");
 
-		int maxMatches = 0;
+		var maxMatches = 0;
 		String maxMatchIDP = null;
 
-		for (var idp : idps) {
-			Matcher matcher = pattern.matcher(idp);
+		for (final var idp : idps) {
+			final var matcher = pattern.matcher(idp);
 
-			int count = 0;
+			var count = 0;
 			while (matcher.find()) {
-				logger.debug("matcher.group: {}", matcher.group());
+				CircleOfTrust.logger.debug("matcher.group: {}", matcher.group());
 				count++;
 			}
-			int matches = count;
+			final var matches = count;
 			if (matches > maxMatches) {
 				maxMatches = matches;
 				maxMatchIDP = idp;
 			}
 
-			logger.debug("count:{}, idp: {}", count, idp);
+			CircleOfTrust.logger.debug("count:{}, idp: {}", count, idp);
 		}
 
-		logger.debug("maxMatchIDP: {}", maxMatchIDP);
+		CircleOfTrust.logger.debug("maxMatchIDP: {}", maxMatchIDP);
+	}
+
+	private Set<EntityID> idps = new HashSet<>();
+
+	private Set<EntityID> sps = new HashSet<>();
+
+	public CircleOfTrust(final String id) {
+		super(id, EntityType.CIRCLE_OF_TRUST);
+	}
+
+	public EntityID getIdp() {
+		var maxMatches = 0;
+		EntityID maxMatchIDP = null;
+
+		Set<String> tokens = new HashSet<>(Arrays.asList(getID().split("_")));
+		// Replace specific strings and prefix/suffix single character strings
+		tokens = tokens.stream().map(token -> token.length() == 1 ? ":" + token : "2025".equals(token) ? "25" : "2031".equals(token) ? "31" : token).collect(Collectors.toSet());
+		tokens.add("urn");
+
+		final var regexPattern = "(" + String.join("|", tokens) + ")";
+		final var pattern = Pattern.compile(regexPattern);
+
+		for (final var idp : idps) {
+			final var matcher = pattern.matcher(idp.getID());
+
+			var count = 0;
+			while (matcher.find()) {
+				count++;
+			}
+			final var matches = count;
+			if (matches > maxMatches) {
+				maxMatches = matches;
+				maxMatchIDP = idp;
+			}
+		}
+
+		if (null == maxMatchIDP && !idps.isEmpty()) {
+			maxMatchIDP = idps.stream().findFirst().get();
+		}
+
+		sps.remove(maxMatchIDP);
+		return maxMatchIDP;
+	}
+
+	public Set<EntityID> getIdps() {
+		return idps;
+	}
+
+	public Set<EntityID> getSps() {
+		return sps;
+	}
+
+	public boolean hasIdp() {
+		return getIdps().stream().findFirst().isPresent();
+	}
+
+	public EntityID setIdp() {
+		return getIdps().stream().findFirst().get();
+	}
+
+	public void setIdps(final Set<EntityID> idps) {
+		this.idps = idps;
+	}
+
+	public void setSps(final Set<EntityID> sps) {
+		this.sps = sps;
 	}
 }
