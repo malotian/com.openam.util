@@ -73,6 +73,8 @@ public class CircleOfTrustProcessor {
 		final var typesEncountered = new HashSet<>();
 
 		final var cot = new CircleOfTrust(id);
+		cot.addAttribute(Entity.STATUS, json.get("status").asText().equalsIgnoreCase("active") ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
+
 		final var trustedProviders = new HashSet<EntityID>();
 		json.get("trustedProviders").forEach(provider -> {
 			final var eid = EntityID.ParseProviderEntry(provider.asText());
@@ -83,6 +85,8 @@ public class CircleOfTrustProcessor {
 			}
 			trustedProviders.add(eid);
 		});
+
+		trustedProviders.stream().map(Entity::get).forEach(entity -> entity.addAttribute(Entity.STATUS, Entity.STATUS_ACTIVE));
 
 		if (typesEncountered.size() > 1) {
 			CircleOfTrustProcessor.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());

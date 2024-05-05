@@ -101,6 +101,10 @@ var columnDefs = [{
 	}
 },
 {
+	title: "STATUS",
+	field: "STATUS",
+},
+{
 	title: "INT",
 	field: "INT",
 	widthGrow: 0.7,
@@ -244,7 +248,10 @@ function updateFilter() {
 	}
 
 	if (filterVal) {
-		table.setFilter(filter, typeVal, colFilterValue.value);
+		if (typeVal === "empty") {
+            table.setFilter(filter, "like", ""); // Setting filter without typeVal and filterValue
+        }
+		else table.setFilter(filter, typeVal, colFilterValue.value);
 	}
 }
 
@@ -344,7 +351,12 @@ var table = new Tabulator("#openam-entities-table", {
 		headerMenu: headerMenu,
 		tooltip: function(e, row, onRendered) {
 			return remarks(row.getData());
-		}
+		},
+		headerFilterFunc:function(headerValue, rowValue, rowData, filterParams){
+            // Check if headerValue matches the regex
+            var regex = new RegExp(headerValue, 'i'); // 'i' for case insensitive
+            return regex.test(rowValue);
+        },     
 	},
 	dataLoaderLoading: dataLoaderLoading,
 	footerElement: '<span class="tabulator-counter float-left">' +

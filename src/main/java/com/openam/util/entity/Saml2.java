@@ -9,6 +9,7 @@ public class Saml2 extends Entity {
 
 	public Saml2(final String id) {
 		super(id, EntityType.SAML2);
+		addAttribute(Entity.STATUS,Entity.STATUS_INACTIVE);
 	}
 
 	public boolean isIDP() {

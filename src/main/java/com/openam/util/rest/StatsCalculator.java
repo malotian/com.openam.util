@@ -61,31 +61,46 @@ public class StatsCalculator {
 	}
 
 	private Stream<Policy> getStreamOfPolicies(final Pattern pattern, final boolean active) {
-		return entityHelper.getPolicies().stream().filter(p -> pattern.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) && active == Boolean.valueOf(p.getAttribute(Entity.ACTIVE)));
+		return entityHelper.getPolicies().stream().filter(p -> pattern.matcher(p.getID()).find() && p.hasAttribute(Entity.STATUS) && active == Boolean.valueOf(p.getAttribute(Entity.STATUS)));
 	}
 
 	public HashMap<String, Long> stats() {
 		final var result = new HashMap<String, Long>();
-
-		final var setOf2025CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "pwcidentitysigning_stg", "PwCIdentitySigning_Prod_exp_2035", "pwcidentitysigning_prd");
+		final var setOf2035CertAlias = Set.of("PwCIdentitySigning_Stg_exp_2035", "PwCIdentitySigning_Prod_exp_2035");
+		final var setOf2025CertAlias = Set.of( "pwcidentitysigning_stg", "pwcidentitysigning_prd");
 		final var setOf2031CertAlias = Set.of("pwcidentitysigning_stg_exp_2031", "pwcidentitysigning_prd_exp_2031");
 		final var attribuesRemoteServiceProvider = List.of(ImmutablePair.of(Entity.SP_IDP, Entity.SERVICE_PROVIDER), ImmutablePair.of(Entity.HOSTED_REMOTE, Entity.REMOTE));
 
+		// TOTAL
 		result.put("COUNT_OAUTH", getStreamOfAppEntititesWithSepcficAttributes(EntityType.OAUTH2, null).count());
 		result.put("COUNT_SAML", getStreamOfAppEntititesWithSepcficAttributes(EntityType.SAML2, attribuesRemoteServiceProvider).count());
 		result.put("COUNT_WSFED", getStreamOfAppEntititesWithSepcficAttributes(EntityType.WSFED, attribuesRemoteServiceProvider).count());
+		
+		// 2025
 		result.put("COUNT_2025", getStreamOfAppEntititesWithSpecficCertAlias(setOf2025CertAlias).count());
 		result.put("COUNT_2025_INTERNAL_ONLY", getStreamOfInternalAppEntititesSpecficCertAlias(setOf2025CertAlias).count());
 		result.put("COUNT_SAML2_2025", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.SAML2, setOf2025CertAlias).count());
 		result.put("COUNT_SAML2_2025_INTERNAL_ONLY", getStreamOfInternalAppEntititesWithSpecficEntityTypeAndCertAlias(EntityType.SAML2, setOf2025CertAlias).count());
 		result.put("COUNT_WSFED_2025", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.WSFED, setOf2025CertAlias).count());
 		result.put("COUNT_WSFED_2025_INTERNAL_ONLY", getStreamOfInternalAppEntititesWithSpecficEntityTypeAndCertAlias(EntityType.WSFED, setOf2025CertAlias).count());
+
+		// 2031
 		result.put("COUNT_2031", getStreamOfAppEntititesWithSpecficCertAlias(setOf2031CertAlias).count());
 		result.put("COUNT_2031_INTERNAL_ONLY", getStreamOfInternalAppEntititesSpecficCertAlias(setOf2031CertAlias).count());
 		result.put("COUNT_SAML2_2031", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.SAML2, setOf2031CertAlias).count());
 		result.put("COUNT_SAML2_2031_INTERNAL_ONLY", getStreamOfInternalAppEntititesWithSpecficEntityTypeAndCertAlias(EntityType.SAML2, setOf2031CertAlias).count());
 		result.put("COUNT_WSFED_2031", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.WSFED, setOf2031CertAlias).count());
 		result.put("COUNT_WSFED_2031_INTERNAL_ONLY", getStreamOfInternalAppEntititesWithSpecficEntityTypeAndCertAlias(EntityType.WSFED, setOf2031CertAlias).count());
+
+		// 2035
+		result.put("COUNT_2035", getStreamOfAppEntititesWithSpecficCertAlias(setOf2035CertAlias).count());
+		result.put("COUNT_2035_INTERNAL_ONLY", getStreamOfInternalAppEntititesSpecficCertAlias(setOf2035CertAlias).count());
+		result.put("COUNT_SAML2_2035", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.SAML2, setOf2035CertAlias).count());
+		result.put("COUNT_SAML2_2035_INTERNAL_ONLY", getStreamOfInternalAppEntititesWithSpecficEntityTypeAndCertAlias(EntityType.SAML2, setOf2035CertAlias).count());
+		result.put("COUNT_WSFED_2035", getStreamOfAppEntititesWithSpecificEntityTypeAndCertAlias(EntityType.WSFED, setOf2035CertAlias).count());
+		result.put("COUNT_WSFED_2035_INTERNAL_ONLY", getStreamOfInternalAppEntititesWithSpecficEntityTypeAndCertAlias(EntityType.WSFED, setOf2035CertAlias).count());
+		
+		// CLIENTFED
 		result.put("COUNT_CLIENTFED_ACTIVE", getStreamOfPolicies(Policy.patternClientFedPolicies, true).count());
 		result.put("COUNT_CLIENTFED_NOT_ACTIVE", getStreamOfPolicies(Policy.patternClientFedPolicies, false).count());
 		return result;

@@ -90,6 +90,9 @@ public class OAuth2ClientProcessor {
 		}
 
 		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
+		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("status")) {
+			oauth2Client.addAttribute(Entity.STATUS, json.get("coreOAuth2ClientConfig").get("status").asText().equalsIgnoreCase("active") ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
+		}
 
 		final var claims = new ArrayList<String>();
 		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("scopes")) {

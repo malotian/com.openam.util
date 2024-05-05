@@ -46,7 +46,9 @@ public class Entity extends EntityID {
 	public static String REDIRECT_URLS = "REDIRECT-URLS";
 	public static String CLAIMS = "CLAIMS";
 
-	public static String ACTIVE = "ACTIVE";
+	public static String STATUS = "STATUS";
+	public static String STATUS_ACTIVE = "ACTIVE";
+	public static String STATUS_INACTIVE = "INACTIVE";
 
 	public static Pattern patternPasswordProtectedTransportServiceCertMfa = Pattern.compile("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\\|\\d+\\|service=(.*)\\|default");
 	public static Pattern patternSaml2DefaultIDPAttributeMapper = Pattern.compile("com.sun.identity.saml2.plugins.DefaultIDPAttributeMapper");

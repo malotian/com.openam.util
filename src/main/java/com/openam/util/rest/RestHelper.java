@@ -115,11 +115,11 @@ public class RestHelper {
 				&& v.doesJsonArrayAttributeContains(Entity.SIGNING_CERT_ALIAS, setOf2031CertAlias) //
 				&& v.hasAttribute(Entity.EXTERNAL_AUTH) && "N/A".equals(v.getAttribute(Entity.EXTERNAL_AUTH)))).count());
 
-		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) //
-				&& "true".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
+		result.put("COUNT_CLIENTFED_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.STATUS) //
+				&& "true".equalsIgnoreCase(p.getAttribute(Entity.STATUS)))).count());
 
-		result.put("COUNT_CLIENTFED_NOT_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.ACTIVE) //
-				&& "false".equalsIgnoreCase(p.getAttribute(Entity.ACTIVE)))).count());
+		result.put("COUNT_CLIENTFED_NOT_ACTIVE", entityHelper.getPolicies().stream().filter(p -> (Policy.patternClientFedPolicies.matcher(p.getID()).find() && p.hasAttribute(Entity.STATUS) //
+				&& "false".equalsIgnoreCase(p.getAttribute(Entity.STATUS)))).count());
 
 		return result;
 	}

@@ -531,11 +531,30 @@ public class AdhocProcessor implements CommandLineRunner {
 
 	@Override
 	public void run(final String... args) throws Exception {
-		kontext.initilize("prod");
+		kontext.initilize("stage");
 		AdhocProcessor.logger.debug("setting environment: {}", kontext.getEnvironment());
 
-		listPolicies(args);
+		listPublicClient(args);
 		AdhocProcessor.logger.debug("AdhocProcessor.run");
+	}
+	
+	public static void listPublicClient(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		final var mapper = new ObjectMapper();
+		final var env = "stage";
+		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class);
+		final var resultPolicies = jsonSaml2Entities.get("result");
+
+		final var csvPrinter = new CSVPrinter(Files.newBufferedWriter(Paths.get(env + "-oauth-client-type.csv")), CSVFormat.DEFAULT.withHeader("ID", "Status"));
+
+		for (final var json : resultPolicies) {
+			final var id = json.get("_id").asText();
+
+			new HashSet<String>();
+			if (json.has("coreOpenIDClientConfig") && json.get("coreOAuth2ClientConfig").has("clientType")) {
+				csvPrinter.printRecord(id, json.get("coreOAuth2ClientConfig").get("clientType"));
+			}
+		}
+
 	}
 
 	@SuppressWarnings("deprecation")

@@ -32,7 +32,6 @@ public class RestKlient {
 
 	static CloseableHttpClient httpClientWithServiceUnavailableRetryStrategy() {
 		final var httpClientBuilder = HttpClients.custom().setDefaultRequestConfig(RequestConfig.custom().setSocketTimeout(RestKlient.SOCKET_TIMEOUT_MILLIS).build());
-
 		return httpClientBuilder.build();
 	}
 
