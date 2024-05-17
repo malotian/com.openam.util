@@ -35,7 +35,7 @@ public class PolicyProcessor {
 		// logger.debug("processing policy: {}", policyname);
 		final var policy = new Policy(policyname);
 
-		policy.addAttribute(Entity.STATUS, json.get("active").asText().equalsIgnoreCase("true") ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
+		policy.addAttribute(Entity.STATUS, "true".equalsIgnoreCase(json.get("active").asText()) ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
 
 		if (!json.has("resources")) {
 			PolicyProcessor.logger.warn("skipping, resources missing for policy: {} ", json.get("_id").asText());

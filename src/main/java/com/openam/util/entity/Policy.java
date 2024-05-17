@@ -19,10 +19,8 @@ public class Policy extends Entity {
 	public static Pattern patternInternalTreePWDPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal Tree \\(PWD\\)", Pattern.CASE_INSENSITIVE);
 
 	public static void main(final String[] args) {
-
 		Policy.logger.debug("{}", Policy.patternInternalNoFallbackTreePolicies.matcher("SAML/WS-Fed/OAuth Internal_no_fallback Tree").find());
 		Policy.logger.debug("{}", Policy.patternInternalNoFallbackTreePolicies.matcher("SAML/WS-Fed/OAuth Internal_no_fallback Treew").find());
-
 	}
 
 	private Set<EntityID> resources = new HashSet<>();

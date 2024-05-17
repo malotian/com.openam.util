@@ -128,12 +128,11 @@ public class OpenAM {
 		result = refresh ? fetchOAuth2() : parseOAuth2Entities();
 		oAuth2ClientProcessor.process(result);
 
-		var resultCOT = refresh ? fetchCircleOfTrust() : parseCircleOfTrust();
-
 		result = refresh ? fetchSaml2() : parseSaml2Entities();
 		saml2Processor.process(result);
 
-		circleOfTrustProcessor.process(resultCOT);
+		result = refresh ? fetchCircleOfTrust() : parseCircleOfTrust();
+		circleOfTrustProcessor.process(result);
 
 		return true;
 	}

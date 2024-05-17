@@ -50,7 +50,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.openam.util.Kontext;
 import com.openam.util.OpenAM;
+import com.openam.util.entity.Entity;
 import com.openam.util.entity.EntityID;
+import com.openam.util.entity.Saml2;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "com.openam.*")
@@ -67,6 +69,125 @@ public class AdhocProcessor implements CommandLineRunner {
 			}
 		}
 		return commonList;
+	}
+
+	public static void idpMapperServiceCsv(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		final var mapper = new ObjectMapper();
+		final var env = "prod";
+		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonSaml2Entities.json").toFile(), JsonNode.class);
+		final var resultSaml = jsonSaml2Entities.get("result");
+
+		final String[] columns = { "ID", "SERVICE", "MAPPER", "HOSTED-REMOTE" };
+
+		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
+		final var outputCsv = Files.newBufferedWriter(Paths.get(env + "-idp-mapper.service.csv"));
+		final var printer = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader("ID", "SERVICE", "IDP-ADAPTER").build());
+
+		for (final var json : resultSaml) {
+			final var id = json.get("_id").asText();
+
+			if (!json.has("entityConfig")) {
+				continue;
+			}
+
+			final var entityConfig = json.get("entityConfig").asText();
+			AdhocProcessor.logger.debug("id: {}", id);
+			final var saml2 = new Saml2(id);
+
+			final var builderFactory = DocumentBuilderFactory.newInstance();
+			final var builder = builderFactory.newDocumentBuilder();
+
+			final var xmlEntityConfig = builder.parse(new InputSource(new StringReader(entityConfig)));
+
+			final var xPath = XPathFactory.newInstance().newXPath();
+
+			final var nodeListIDPSSODescriptor = (NodeList) xPath.compile("//IDPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+			final var isIDP = 0 != nodeListIDPSSODescriptor.getLength();
+			// Saml2Processor.logger.debug("isIDP: {}", isIDP);
+
+			final var nodeListSPSSODescriptor = (NodeList) xPath.compile("//SPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+			nodeListSPSSODescriptor.getLength();
+
+			final var hosted = (String) xPath.compile("//EntityConfig/@hosted").evaluate(xmlEntityConfig, XPathConstants.STRING);
+			// Saml2Processor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
+			if ("true".equalsIgnoreCase(hosted)) {
+				saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
+			} else if ("false".equalsIgnoreCase(hosted)) {
+				saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
+			} else {
+				continue;
+			}
+
+			if (!isIDP) {
+				AdhocProcessor.logger.debug("isIDP: {}", isIDP);
+				continue;
+			}
+			final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
+					XPathConstants.NODESET);
+			for (var i = 0; i < idpAuthncontextClassrefMappings.getLength(); i++) {
+				// Saml2Processor.logger.debug("idpAuthncontextClassrefMappings: {}",
+				// idpAuthncontextClassrefMappings.item(i).getTextContent());
+				final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
+
+				if (matcher.find() && !matcher.group(1).isBlank()) {
+					Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
+					saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
+					final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
+					saml2.addRemarks(remarks1);
+
+					saml2.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
+					final var remarks2 = MessageFormat.format("EXTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.EXTERNAL_AUTH), matcher.group(1));
+					saml2.addRemarks(remarks2);
+				}
+			}
+
+			final var idpAccountMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAccountMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+			final var accountMappers = IntStream.range(0, idpAccountMappers.getLength()).mapToObj(idpAccountMappers::item).map(iam -> {
+				// Saml2Processor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
+				if (Entity.patternSaml2DefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+					return "DefaultIDPAccountMapper";
+				}
+				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(iam.getTextContent()).find()) {
+					return "PwCIdentityMultipleNameIDAccountMapper";
+				}
+				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
+					return "PwCIdentityWsfedIDPAccountMapper";
+				}
+				Saml2Processor.logger.warn("invalid idpAccountMapper: {} for saml2: {}", iam.getTextContent(), id);
+				return null;
+			}).collect(Collectors.toList());
+
+			accountMappers.forEach(am -> saml2.addRemarks(MessageFormat.format("ACCOUNT_MAPPER: {0}", am)));
+
+			final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+
+			final var idpAdapters = IntStream.range(0, idpAttributeMappers.getLength()).mapToObj(idpAttributeMappers::item).map(ia -> {
+				Saml2Processor.logger.warn("invalid idpAttributeMapper: {} for saml2: {}", ia.getTextContent(), id);
+				return ia.getTextContent();
+			}).collect(Collectors.toList());
+
+			printer.printRecord(id, saml2.getAttribute(Entity.INTERNAL_AUTH), String.join("#", idpAdapters), saml2.getAttribute(Entity.HOSTED_REMOTE));
+
+		}
+	}
+
+	public static void listPublicClient(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		final var mapper = new ObjectMapper();
+		final var env = "stage";
+		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class);
+		final var resultPolicies = jsonSaml2Entities.get("result");
+
+		final var csvPrinter = new CSVPrinter(Files.newBufferedWriter(Paths.get(env + "-oauth-client-type.csv")), CSVFormat.DEFAULT.withHeader("ID", "Status"));
+
+		for (final var json : resultPolicies) {
+			final var id = json.get("_id").asText();
+
+			new HashSet<String>();
+			if (json.has("coreOpenIDClientConfig") && json.get("coreOAuth2ClientConfig").has("clientType")) {
+				csvPrinter.printRecord(id, json.get("coreOAuth2ClientConfig").get("clientType"));
+			}
+		}
+
 	}
 
 	public static void main(final String[] args) {
@@ -534,27 +655,8 @@ public class AdhocProcessor implements CommandLineRunner {
 		kontext.initilize("stage");
 		AdhocProcessor.logger.debug("setting environment: {}", kontext.getEnvironment());
 
-		listPublicClient(args);
+		AdhocProcessor.idpMapperServiceCsv(args);
 		AdhocProcessor.logger.debug("AdhocProcessor.run");
-	}
-	
-	public static void listPublicClient(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
-		final var mapper = new ObjectMapper();
-		final var env = "stage";
-		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class);
-		final var resultPolicies = jsonSaml2Entities.get("result");
-
-		final var csvPrinter = new CSVPrinter(Files.newBufferedWriter(Paths.get(env + "-oauth-client-type.csv")), CSVFormat.DEFAULT.withHeader("ID", "Status"));
-
-		for (final var json : resultPolicies) {
-			final var id = json.get("_id").asText();
-
-			new HashSet<String>();
-			if (json.has("coreOpenIDClientConfig") && json.get("coreOAuth2ClientConfig").has("clientType")) {
-				csvPrinter.printRecord(id, json.get("coreOAuth2ClientConfig").get("clientType"));
-			}
-		}
-
 	}
 
 	@SuppressWarnings("deprecation")

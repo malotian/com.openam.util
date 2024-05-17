@@ -122,7 +122,6 @@ public class Entity extends EntityID {
 			e.printStackTrace();
 		}
 		return false;
-
 	}
 
 	public String getAttribute(final String attribute) {

@@ -37,7 +37,6 @@ public class CircleOfTrustProcessor {
 			count++;
 			idx += substring.length();
 		}
-
 		return count;
 	}
 
@@ -52,7 +51,6 @@ public class CircleOfTrustProcessor {
 				maxMatchString = str;
 			}
 		}
-
 		return maxMatchString;
 	}
 
@@ -60,7 +58,9 @@ public class CircleOfTrustProcessor {
 	protected EntityHelper helper;
 
 	public void _process(final JsonNode json) throws ParserConfigurationException, SAXException, IOException {
+
 		final var id = json.get("_id").asText();
+
 		if (!json.has("trustedProviders")) {
 			CircleOfTrustProcessor.logger.warn("skipping, trustedProviders missing : {} ", json.get("_id").asText());
 			return;
@@ -73,7 +73,6 @@ public class CircleOfTrustProcessor {
 		final var typesEncountered = new HashSet<>();
 
 		final var cot = new CircleOfTrust(id);
-		cot.addAttribute(Entity.STATUS, json.get("status").asText().equalsIgnoreCase("active") ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
 
 		final var trustedProviders = new HashSet<EntityID>();
 		json.get("trustedProviders").forEach(provider -> {
@@ -86,10 +85,16 @@ public class CircleOfTrustProcessor {
 			trustedProviders.add(eid);
 		});
 
-		trustedProviders.stream().map(Entity::get).forEach(entity -> entity.addAttribute(Entity.STATUS, Entity.STATUS_ACTIVE));
-
 		if (typesEncountered.size() > 1) {
 			CircleOfTrustProcessor.logger.warn("warning, mixed entitities: {} in cot: {}", Util.json(typesEncountered), cot.getID());
+		}
+
+		final var active = "active".equalsIgnoreCase(json.get("status").asText());
+		cot.addAttribute(Entity.STATUS, "active".equalsIgnoreCase(json.get("status").asText()) ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
+		if (!active) {
+			CircleOfTrustProcessor.logger.warn("warning, in-active cot: {}", Util.json(typesEncountered), cot.getID());
+			cot.addRemarks(MessageFormat.format("INACTIVE COT: {0}", cot.getID()));
+			return;
 		}
 
 		final var sps = new HashSet<>(trustedProviders);
@@ -100,6 +105,8 @@ public class CircleOfTrustProcessor {
 		if (idps.size() == 0) {
 			CircleOfTrustProcessor.logger.warn("no idps(strict=true) in cot: {}", cot.getID());
 			idps = filterIdp(trustedProviders, false);
+		} else {
+			trustedProviders.stream().map(Entity::get).forEach(entity -> entity.addAttribute(Entity.STATUS, Entity.STATUS_ACTIVE));
 		}
 
 		cot.setIdps(idps);
@@ -154,13 +161,10 @@ public class CircleOfTrustProcessor {
 				sp.addAttribute(Entity.EXTERNAL_AUTH, idp.getAttribute(Entity.EXTERNAL_AUTH));
 				sp.addRemarks(MessageFormat.format("EXTERNAL_AUTH: {0}, IDP: {1}", sp.getAttribute(Entity.EXTERNAL_AUTH), idp.getID()));
 			}
-
 		});
-
 	}
 
 	private Set<EntityID> filterIdp(final Set<EntityID> trustedProviders, final boolean strict) {
-
 		return trustedProviders.stream().filter(eid -> {
 			final var entity = Entity.get(eid);
 
@@ -176,7 +180,6 @@ public class CircleOfTrustProcessor {
 				}
 			}
 			return false;
-
 		}).collect(Collectors.toSet());
 	}
 

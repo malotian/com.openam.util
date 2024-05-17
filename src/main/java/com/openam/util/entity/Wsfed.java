@@ -4,8 +4,8 @@ public class Wsfed extends Entity {
 
 	public Wsfed(final String id) {
 		super(id, EntityType.WSFED);
-		addAttribute(Entity.STATUS,Entity.STATUS_INACTIVE);
-		
+		addAttribute(Entity.STATUS, Entity.STATUS_INACTIVE);
+
 	}
 
 	public boolean isIDP() {
