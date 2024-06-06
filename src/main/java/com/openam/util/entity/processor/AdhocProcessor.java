@@ -71,17 +71,17 @@ public class AdhocProcessor implements CommandLineRunner {
 		return commonList;
 	}
 
-	public static void idpMapperServiceCsv(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+	public static void idpMapperAdapterServiceCsv(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		final var mapper = new ObjectMapper();
 		final var env = "prod";
 		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonSaml2Entities.json").toFile(), JsonNode.class);
 		final var resultSaml = jsonSaml2Entities.get("result");
 
-		final String[] columns = { "ID", "SERVICE", "MAPPER", "HOSTED-REMOTE" };
+		final String[] columns = { "ID", "SERVICE", "ADAPTER", "HOSTED-REMOTE" };
 
 		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
 		final var outputCsv = Files.newBufferedWriter(Paths.get(env + "-idp-mapper.service.csv"));
-		final var printer = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader("ID", "SERVICE", "IDP-ADAPTER").build());
+		final var printer = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader(columns).build());
 
 		for (final var json : resultSaml) {
 			final var id = json.get("_id").asText();
@@ -91,7 +91,7 @@ public class AdhocProcessor implements CommandLineRunner {
 			}
 
 			final var entityConfig = json.get("entityConfig").asText();
-			AdhocProcessor.logger.debug("id: {}", id);
+			//AdhocProcessor.logger.debug("id: {}", id);
 			final var saml2 = new Saml2(id);
 
 			final var builderFactory = DocumentBuilderFactory.newInstance();
@@ -119,7 +119,7 @@ public class AdhocProcessor implements CommandLineRunner {
 			}
 
 			if (!isIDP) {
-				AdhocProcessor.logger.debug("isIDP: {}", isIDP);
+				//AdhocProcessor.logger.debug("isIDP: {}", isIDP);
 				continue;
 			}
 			final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
@@ -141,37 +141,21 @@ public class AdhocProcessor implements CommandLineRunner {
 				}
 			}
 
-			final var idpAccountMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAccountMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
-			final var accountMappers = IntStream.range(0, idpAccountMappers.getLength()).mapToObj(idpAccountMappers::item).map(iam -> {
-				// Saml2Processor.logger.debug("idpAccountMapper: {}", iam.getTextContent());
-				if (Entity.patternSaml2DefaultIDPAccountMapper.matcher(iam.getTextContent()).find()) {
-					return "DefaultIDPAccountMapper";
-				}
-				if (Entity.patternPwCIdentityMultipleNameIDAccountMapper.matcher(iam.getTextContent()).find()) {
-					return "PwCIdentityMultipleNameIDAccountMapper";
-				}
-				if (Entity.patternPwCIdentityWsfedIDPAccountMapper.matcher(iam.getTextContent()).find()) {
-					return "PwCIdentityWsfedIDPAccountMapper";
-				}
-				Saml2Processor.logger.warn("invalid idpAccountMapper: {} for saml2: {}", iam.getTextContent(), id);
-				return null;
-			}).collect(Collectors.toList());
+			final var idpAdapter = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAdapter']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 
-			accountMappers.forEach(am -> saml2.addRemarks(MessageFormat.format("ACCOUNT_MAPPER: {0}", am)));
-
-			final var idpAttributeMappers = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAttributeMapper']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
-
-			final var idpAdapters = IntStream.range(0, idpAttributeMappers.getLength()).mapToObj(idpAttributeMappers::item).map(ia -> {
-				Saml2Processor.logger.warn("invalid idpAttributeMapper: {} for saml2: {}", ia.getTextContent(), id);
+			final var idpAdapters = IntStream.range(0, idpAdapter.getLength()).mapToObj(idpAdapter::item).map(ia -> {
 				return ia.getTextContent();
 			}).collect(Collectors.toList());
+			
+			logger.debug("idpAdapters: {}", String.join("#", idpAdapters));
 
 			printer.printRecord(id, saml2.getAttribute(Entity.INTERNAL_AUTH), String.join("#", idpAdapters), saml2.getAttribute(Entity.HOSTED_REMOTE));
 
 		}
+		printer.close();
 	}
-
-	public static void listPublicClient(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+	
+	public static void redirectionUris(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		final var mapper = new ObjectMapper();
 		final var env = "stage";
 		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class);
@@ -185,6 +169,26 @@ public class AdhocProcessor implements CommandLineRunner {
 			new HashSet<String>();
 			if (json.has("coreOpenIDClientConfig") && json.get("coreOAuth2ClientConfig").has("clientType")) {
 				csvPrinter.printRecord(id, json.get("coreOAuth2ClientConfig").get("clientType"));
+			}
+		}
+	}
+
+	
+
+	public static void listPublicConfidentialClient(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		final var mapper = new ObjectMapper();
+		final var env = "stage";
+		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class);
+		final var resultPolicies = jsonSaml2Entities.get("result");
+
+		final var csvPrinter = new CSVPrinter(Files.newBufferedWriter(Paths.get(env + "-oauth-client-type.csv")), CSVFormat.DEFAULT.withHeader("ID", "Type", "RedirectURls"));
+
+		for (final var json : resultPolicies) {
+			final var id = json.get("_id").asText();
+
+			new HashSet<String>();
+			if (json.has("coreOpenIDClientConfig") && json.get("coreOAuth2ClientConfig").has("clientType")) {
+				csvPrinter.printRecord(id, json.get("coreOAuth2ClientConfig").get("clientType"), json.get("coreOAuth2ClientConfig").get("redirectionUris"));
 			}
 		}
 
@@ -654,8 +658,8 @@ public class AdhocProcessor implements CommandLineRunner {
 	public void run(final String... args) throws Exception {
 		kontext.initilize("stage");
 		AdhocProcessor.logger.debug("setting environment: {}", kontext.getEnvironment());
-
-		AdhocProcessor.idpMapperServiceCsv(args);
+		AdhocProcessor processor = new AdhocProcessor();
+		processor.stepUpHelper(args);
 		AdhocProcessor.logger.debug("AdhocProcessor.run");
 	}
 
@@ -663,7 +667,7 @@ public class AdhocProcessor implements CommandLineRunner {
 	public void stepUpHelper(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
 		final var mapper = new ObjectMapper();
-		final var env = "prod";
+		final var env = "stage";
 		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonPolicies.json").toFile(), JsonNode.class);
 		final var resultPolicies = jsonSaml2Entities.get("result");
 
@@ -685,10 +689,10 @@ public class AdhocProcessor implements CommandLineRunner {
 		policyMapJson.addProperty("wsfed-SAML/WS-Fed/OAuth Internal CERT", "WSFed Internal CERT");
 		policyMapJson.addProperty("wsfed-SAML/WS-Fed/OAuth Internal MFA", "WSFed Internal MFA");
 
-//		policyMappings.put("saml-External User MFA", "Saml External MFA");
-//		policyMappings.put("saml-ExternalUsersTrustedDevice", "Saml Stepup External Trust My device");
-//		policyMappings.put("saml-SAML/WS-Fed/OAuth Internal CERT", "Saml Internal CERT");
-//		policyMappings.put("saml-SAML/WS-Fed/OAuth Internal MFA", "Saml Internal MFA");
+		policyMapJson.addProperty("saml-External User MFA", "SAML External MFA");
+		policyMapJson.addProperty("saml-ExternalUsersTrustedDevice", "SAML Stepup External Trust My device");
+		policyMapJson.addProperty("saml-SAML/WS-Fed/OAuth Internal CERT", "SAML Internal CERT");
+		policyMapJson.addProperty("saml-SAML/WS-Fed/OAuth Internal MFA", "SAML Internal MFA");
 
 		for (final var json : resultPolicies) {
 			final var policyname = json.get("_id").asText();
@@ -744,6 +748,7 @@ public class AdhocProcessor implements CommandLineRunner {
 
 				if (policyMapJson.has(targetPolicyKey)) {
 					final var targetPolicyName = policyMapJson.get(targetPolicyKey).getAsString();
+					logger.debug(targetPolicyName);
 					final var tragetPolicy = targetPolicies.get(targetPolicyName).getAsJsonObject();
 
 					tragetPolicy.remove("_rev");
