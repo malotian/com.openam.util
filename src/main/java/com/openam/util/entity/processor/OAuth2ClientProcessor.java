@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -89,7 +90,7 @@ public class OAuth2ClientProcessor {
 			json.get("coreOAuth2ClientConfig").get("redirectionUris").forEach(h -> redirectUrls.add(h.asText()));
 		}
 
-		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
+		oauth2Client.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).collect(Collectors.toList())));
 		if (json.has("coreOAuth2ClientConfig") && json.get("coreOAuth2ClientConfig").has("status")) {
 			oauth2Client.addAttribute(Entity.STATUS, "active".equalsIgnoreCase(json.get("coreOAuth2ClientConfig").get("status").asText()) ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
 		}

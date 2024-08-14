@@ -174,7 +174,7 @@ public class Saml2Processor {
 		final var assertionConsumerServices = (NodeList) xPath.compile("//EntityDescriptor/SPSSODescriptor/AssertionConsumerService/@Location").evaluate(xmlMetadata, XPathConstants.NODESET);
 		final var redirectUrls = IntStream.range(0, assertionConsumerServices.getLength()).mapToObj(assertionConsumerServices::item).map(Node::getTextContent).collect(Collectors.toList());
 
-		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
+		saml2.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).collect(Collectors.toList())));
 
 		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 

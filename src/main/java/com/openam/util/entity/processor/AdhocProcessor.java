@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -48,10 +49,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.openam.util.Kontext;
 import com.openam.util.OpenAM;
 import com.openam.util.entity.Entity;
 import com.openam.util.entity.EntityID;
+import com.openam.util.entity.Policy;
 import com.openam.util.entity.Saml2;
 
 @SpringBootApplication
@@ -71,7 +74,8 @@ public class AdhocProcessor implements CommandLineRunner {
 		return commonList;
 	}
 
-	public static void idpMapperAdapterServiceCsv(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+	public static void idpMapperAdapterServiceCsv(final String[] args)
+			throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		final var mapper = new ObjectMapper();
 		final var env = "prod";
 		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonSaml2Entities.json").toFile(), JsonNode.class);
@@ -91,7 +95,7 @@ public class AdhocProcessor implements CommandLineRunner {
 			}
 
 			final var entityConfig = json.get("entityConfig").asText();
-			//AdhocProcessor.logger.debug("id: {}", id);
+			// AdhocProcessor.logger.debug("id: {}", id);
 			final var saml2 = new Saml2(id);
 
 			final var builderFactory = DocumentBuilderFactory.newInstance();
@@ -119,7 +123,7 @@ public class AdhocProcessor implements CommandLineRunner {
 			}
 
 			if (!isIDP) {
-				//AdhocProcessor.logger.debug("isIDP: {}", isIDP);
+				// AdhocProcessor.logger.debug("isIDP: {}", isIDP);
 				continue;
 			}
 			final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
@@ -146,7 +150,7 @@ public class AdhocProcessor implements CommandLineRunner {
 			final var idpAdapters = IntStream.range(0, idpAdapter.getLength()).mapToObj(idpAdapter::item).map(ia -> {
 				return ia.getTextContent();
 			}).collect(Collectors.toList());
-			
+
 			logger.debug("idpAdapters: {}", String.join("#", idpAdapters));
 
 			printer.printRecord(id, saml2.getAttribute(Entity.INTERNAL_AUTH), String.join("#", idpAdapters), saml2.getAttribute(Entity.HOSTED_REMOTE));
@@ -154,7 +158,91 @@ public class AdhocProcessor implements CommandLineRunner {
 		}
 		printer.close();
 	}
-	
+
+	public static void idpNameID(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		final var mapper = new ObjectMapper();
+		final var env = "prod";
+		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonSaml2Entities.json").toFile(), JsonNode.class);
+		final var resultSaml = jsonSaml2Entities.get("result");
+
+		final String[] columns = { "ID", "SERVICE", "ADAPTER", "HOSTED-REMOTE" };
+
+		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
+		final var outputCsv = Files.newBufferedWriter(Paths.get(env + "-idp-mapper.service.csv"));
+		final var printer = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader(columns).build());
+
+		for (final var json : resultSaml) {
+			final var id = json.get("_id").asText();
+
+			if (!json.has("entityConfig")) {
+				continue;
+			}
+
+			final var entityConfig = json.get("entityConfig").asText();
+			// AdhocProcessor.logger.debug("id: {}", id);
+			final var saml2 = new Saml2(id);
+
+			final var builderFactory = DocumentBuilderFactory.newInstance();
+			final var builder = builderFactory.newDocumentBuilder();
+
+			final var xmlEntityConfig = builder.parse(new InputSource(new StringReader(entityConfig)));
+
+			final var xPath = XPathFactory.newInstance().newXPath();
+
+			final var nodeListIDPSSODescriptor = (NodeList) xPath.compile("//IDPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+			final var isIDP = 0 != nodeListIDPSSODescriptor.getLength();
+			// Saml2Processor.logger.debug("isIDP: {}", isIDP);
+
+			final var nodeListSPSSODescriptor = (NodeList) xPath.compile("//SPSSOConfig").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+			nodeListSPSSODescriptor.getLength();
+
+			final var hosted = (String) xPath.compile("//EntityConfig/@hosted").evaluate(xmlEntityConfig, XPathConstants.STRING);
+			// Saml2Processor.logger.debug("hosted: {}", "true".equalsIgnoreCase(hosted));
+			if ("true".equalsIgnoreCase(hosted)) {
+				saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.HOSTED);
+			} else if ("false".equalsIgnoreCase(hosted)) {
+				saml2.addAttribute(Entity.HOSTED_REMOTE, Entity.REMOTE);
+			} else {
+				continue;
+			}
+
+			if (!isIDP) {
+				// AdhocProcessor.logger.debug("isIDP: {}", isIDP);
+				continue;
+			}
+			final var idpAuthncontextClassrefMappings = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAuthncontextClassrefMapping']/Value/text()").evaluate(xmlEntityConfig,
+					XPathConstants.NODESET);
+			for (var i = 0; i < idpAuthncontextClassrefMappings.getLength(); i++) {
+				// Saml2Processor.logger.debug("idpAuthncontextClassrefMappings: {}",
+				// idpAuthncontextClassrefMappings.item(i).getTextContent());
+				final var matcher = Entity.patternPasswordProtectedTransportServiceCertMfa.matcher(idpAuthncontextClassrefMappings.item(i).getTextContent());
+
+				if (matcher.find() && !matcher.group(1).isBlank()) {
+					Saml2Processor.logger.debug("INTERNAL_AUTH: {}", matcher.group(1));
+					saml2.addAttribute(Entity.INTERNAL_AUTH, matcher.group(1));
+					final var remarks1 = MessageFormat.format("INTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.INTERNAL_AUTH), matcher.group(1));
+					saml2.addRemarks(remarks1);
+
+					saml2.addAttribute(Entity.EXTERNAL_AUTH, "N/A");
+					final var remarks2 = MessageFormat.format("EXTERNAL_AUTH: {0}, PasswordProtectedTransport: {1}", saml2.getAttribute(Entity.EXTERNAL_AUTH), matcher.group(1));
+					saml2.addRemarks(remarks2);
+				}
+			}
+
+			final var idpAdapter = (NodeList) xPath.compile("//IDPSSOConfig/Attribute[@name='idpAdapter']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
+
+			final var idpAdapters = IntStream.range(0, idpAdapter.getLength()).mapToObj(idpAdapter::item).map(ia -> {
+				return ia.getTextContent();
+			}).collect(Collectors.toList());
+
+			logger.debug("idpAdapters: {}", String.join("#", idpAdapters));
+
+			printer.printRecord(id, saml2.getAttribute(Entity.INTERNAL_AUTH), String.join("#", idpAdapters), saml2.getAttribute(Entity.HOSTED_REMOTE));
+
+		}
+		printer.close();
+	}
+
 	public static void redirectionUris(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		final var mapper = new ObjectMapper();
 		final var env = "stage";
@@ -173,9 +261,8 @@ public class AdhocProcessor implements CommandLineRunner {
 		}
 	}
 
-	
-
-	public static void listPublicConfidentialClient(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+	public static void listPublicConfidentialClient(final String[] args)
+			throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		final var mapper = new ObjectMapper();
 		final var env = "stage";
 		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class);
@@ -335,6 +422,44 @@ public class AdhocProcessor implements CommandLineRunner {
 
 	}
 
+	public static void mainApplicationsAccessPolicies(final String[] args)
+			throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+		final var mapper = new ObjectMapper();
+		final var env = "stage";
+		final var jsonPolicies = mapper.readValue(Paths.get(env + "/jsonPolicies.json").toFile(), JsonNode.class);
+		final var resultPolicies = jsonPolicies.get("result");
+
+		final String[] columns = { "POLICY", "RESOURCES" };
+
+		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
+		final var outputCsv = Files.newBufferedWriter(Paths.get(env + "-ApplicationsAccess.csv"));
+		final var csvPrinter = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader(columns).build());
+
+		for (var json : resultPolicies) {
+
+			final var policyname = json.get("_id").asText();
+			if (!json.has("applicationName"))
+				continue;
+
+			if (!json.get("applicationName").asText().equals("ApplicationsAccess"))
+				continue;
+
+			System.out.println(policyname);
+
+			if (!json.has("resources")) {
+				PolicyProcessor.logger.warn("skipping, resources missing for policy: {} ", json.get("_id").asText());
+				return;
+			}
+
+			final var reources = new HashSet<String>();
+			json.get("resources").forEach(h -> reources.add(h.asText()));
+
+			csvPrinter.printRecord(policyname, String.join(", ", reources));
+		}
+		csvPrinter.close();
+
+	}
+
 	public static void main9(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		final var mapper = new ObjectMapper();
 		final var env = "stage";
@@ -391,6 +516,34 @@ public class AdhocProcessor implements CommandLineRunner {
 			final var acrs = new HashSet<String>();
 			if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues")) {
 				json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
+			}
+
+			acrs.removeIf(StringUtils::isEmptyOrWhitespace);
+
+			if (!acrs.isEmpty() && acrs.contains("9")) {
+				AdhocProcessor.logger.debug("OAuth2Entity: {} ", id);
+			}
+		}
+	}
+
+	public void acrList() throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		final var mapper = new ObjectMapper();
+		final var env = "prod";
+		final String[] columns = { "ID", "ACR" };
+
+		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
+		final var outputCsv = Files.newBufferedWriter(Paths.get(env + "-id-acr.csv"));
+		final var csvPrinter = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader(columns).build());
+
+		final var result = mapper.readValue(Paths.get(env + "/jsonOAuth2Entities.json").toFile(), JsonNode.class).get("result");
+		for (final var json : result) {
+			final var id = json.get("_id").asText();
+
+			final var acrs = new HashSet<String>();
+			if (json.has("coreOpenIDClientConfig") && json.get("coreOpenIDClientConfig").has("defaultAcrValues")) {
+				json.get("coreOpenIDClientConfig").get("defaultAcrValues").forEach(h -> acrs.add(h.asText()));
+				csvPrinter.printRecord(id, String.join(",", acrs));
 			}
 
 			acrs.removeIf(StringUtils::isEmptyOrWhitespace);
@@ -647,27 +800,217 @@ public class AdhocProcessor implements CommandLineRunner {
 			for (final var r : resources28) {
 				resources28Set.add(r.asText());
 			}
-
 			resources20Set.removeAll(resources28Set);
-
 		}
-
 	}
 
 	@Override
 	public void run(final String... args) throws Exception {
-		kontext.initilize("stage");
-		AdhocProcessor.logger.debug("setting environment: {}", kontext.getEnvironment());
-		AdhocProcessor processor = new AdhocProcessor();
-		processor.stepUpHelper(args);
-		AdhocProcessor.logger.debug("AdhocProcessor.run");
+		try {
+			kontext.initilize("prod");
+			AdhocProcessor.logger.debug("setting environment: {}", kontext.getEnvironment());
+			AdhocProcessor processor = new AdhocProcessor();
+			// processor.acrList();
+			// processor.mainApplicationsAccessPolicies(args);
+			processor.authModulesHelper(args);
+			AdhocProcessor.logger.debug("AdhocProcessor.run");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+	}
+
+	public void clienfedProcessior(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		final var mapper = new ObjectMapper();
+		final var env = "stage";
+		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonPolicies.json").toFile(), JsonNode.class);
+		final var resultPolicies = jsonSaml2Entities.get("result");
+		Pattern _patternClientFedPolicies = Pattern.compile("PwCIDClientFed", Pattern.CASE_INSENSITIVE);
+
+		final String[] columns = { "POLICY", "STATUS" };
+		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
+		final var outputCsv = Files.newBufferedWriter(Paths.get(env + "-client-fed-policies.csv"));
+		final var printer = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader(columns).build());
+
+		for (final var json : resultPolicies) {
+			final var policyname = json.get("_id").asText();
+			// logger.debug("processing policy: {}", policyname);
+			final var policy = new Policy(policyname);
+
+			if (policyname.contains("PwCIDClientFed")) {
+				policy.addAttribute(Entity.STATUS, "true".equalsIgnoreCase(json.get("active").asText()) ? Entity.STATUS_ACTIVE : Entity.STATUS_INACTIVE);
+
+				printer.printRecord(policyname, json.get("active").asText());
+				// boolean selected = _patternClientFedPolicies.matcher(policy.getID()).find()
+				// && policy.hasAttribute(Entity.STATUS) && true ==
+				// Boolean.valueOf(policy.getAttribute(Entity.STATUS));
+			}
+
+		}
+		printer.close();
+
+	}
+
+	private void reformatAccessPolicies(String[] args) throws IOException {
+		final var targetPolicies = new JsonObject();
+		final var lines = Files.readAllLines(Path.of("input/policies-reformat/amster.log"));
+
+		for (final String line : lines) {
+			if (!line.startsWith("===>")) {
+				continue;
+			}
+
+			final var json = JsonParser.parseString(line.substring("===>".length())).getAsJsonObject();
+			System.out.println("------------------\npolicy-id:" + json.get("_id").getAsString());
+			json.remove("_rev");
+
+			JsonArray updatedResources = json.getAsJsonArray("resources").deepCopy();
+			Set<String> resourceSet = new HashSet<>();
+			for (var h : updatedResources) {
+				resourceSet.add(h.getAsJsonPrimitive().getAsString());
+			}
+
+			boolean dirty = false;
+
+			for (var h : json.getAsJsonArray("resources")) {
+				String original = h.getAsJsonPrimitive().getAsString();
+				// Replace "http:/" with "http/"
+				var modified = original.replaceAll("http:/", "http/");
+				// Replace "https:/" with "https/"
+				modified = modified.replaceAll("https:/", "https/");
+
+				if (!original.equals(modified) && !resourceSet.contains(modified)) {
+					dirty = true;
+					resourceSet.add(modified);
+					updatedResources.add(new JsonPrimitive(modified));
+				}
+			}
+
+			if (dirty) {
+				System.out.println("changed: yes");
+				for (var h : updatedResources) {
+					System.out.println(h);
+				}
+			} else {
+				System.out.println("changed: no");
+				for (var h : updatedResources) {
+					System.out.println(h);
+				}
+			}
+
+			json.add("resources", updatedResources);
+			if (dirty)
+				System.out.println("update Policies --realm '/pwc' --id \"" + json.get("_id").getAsString() + "\" --body '" + json + "'");
+
+		}
+	}
+
+	private void reformatStepUpPolicies(String[] args) throws IOException {
+		// "oauth-https://pwccshnldev.service-now.com/|domain-*|type-*"
+		// "oauth-https://pwccshnldev.service-now.com/|domain-*"
+
+		final var targetPolicies = new JsonObject();
+		final var lines = Files.readAllLines(Path.of("input/policies-reformat/amster.log"));
+
+		for (final String line : lines) {
+			if (!line.startsWith("===>")) {
+				continue;
+			}
+
+			final var json = JsonParser.parseString(line.substring("===>".length())).getAsJsonObject();
+			System.out.println("------------------\npolicy-id:" + json.get("_id").getAsString());
+			json.remove("_rev");
+
+			JsonArray updatedResources = new JsonArray();
+			Set<String> resourceSet = new HashSet<>();
+
+			boolean dirty = false;
+
+			for (var h : json.getAsJsonArray("resources")) {
+				String original = h.getAsJsonPrimitive().getAsString();
+				// Replace "http:/" with "http/"
+
+				var modified = original;
+				if (original.endsWith("|type-*")) {
+					modified = original.substring(0, original.length() - "|type-*".length());
+					// System.out.println(modified);
+				}
+
+				if (!resourceSet.contains(modified)) {
+					dirty = true;
+					resourceSet.add(modified);
+					updatedResources.add(new JsonPrimitive(modified));
+				}
+			}
+
+			if (dirty) {
+				System.out.println("changed: yes");
+				for (var h : updatedResources) {
+					// System.out.println(h);
+				}
+			} else {
+				System.out.println("changed: no");
+				for (var h : updatedResources) {
+					// System.out.println(h);
+				}
+			}
+
+			json.add("resources", updatedResources);
+			if (dirty)
+				System.out.println("update Policies --realm '/pwc' --id \"" + json.get("_id").getAsString() + "\" --body '" + json + "'");
+
+		}
+	}
+
+	public void authModulesHelper(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+
+		//String directoryPath = "C:\\Users\\hdhanjal005\\Downloads\\stg_am_exportConfig-20240814155754\\realms\\root-pwc\\authSamlPwci";
+		String directoryPath = "C:\\Users\\hdhanjal005\\Downloads\\prod_am_exportConfig-20240814161113\\realms\\root-pwc\\authSamlPwci";
+
+		// Create a list to hold the loaded objects
+		List<JsonNode> objects = new ArrayList<>();
+
+		try {
+			// Traverse the directory
+			Stream<Path> paths = Files.walk(Paths.get(directoryPath));
+
+			// Filter JSON files and load them
+			paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".json")).forEach(path -> {
+				try {
+					// Load JSON file into object
+					ObjectMapper mapper = new ObjectMapper();
+					JsonNode obj = mapper.readValue(path.toFile(), JsonNode.class);
+					objects.add(obj);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		final String[] columns = { "ID", "entityName" };
+
+		CSVFormat.DEFAULT.builder().setHeader(columns).setSkipHeaderRecord(true).build();
+		final var outputCsv = Files.newBufferedWriter(Paths.get("prod-chains.csv"));
+		final var printer = new CSVPrinter(outputCsv, CSVFormat.DEFAULT.builder().setHeader(columns).build());
+
+		for (var json : objects) {
+			final var id = json.get("data").get("_id").asText();
+			final var entityName = json.get("data").get("entityName").asText();
+			printer.printRecord(id, entityName);
+		}
+
+		printer.close();
+
 	}
 
 	@SuppressWarnings("deprecation")
 	public void stepUpHelper(final String[] args) throws StreamReadException, DatabindException, IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
 		final var mapper = new ObjectMapper();
-		final var env = "stage";
+		final var env = "prod";
 		final var jsonSaml2Entities = mapper.readValue(Paths.get(env + "/jsonPolicies.json").toFile(), JsonNode.class);
 		final var resultPolicies = jsonSaml2Entities.get("result");
 

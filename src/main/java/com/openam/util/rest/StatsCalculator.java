@@ -50,7 +50,8 @@ public class StatsCalculator {
 	}
 
 	private Stream<Policy> getStreamOfPolicies(final Pattern pattern, final boolean active) {
-		return entityHelper.getPolicies().stream().filter(p -> pattern.matcher(p.getID()).find() && p.hasAttribute(Entity.STATUS) && active == Boolean.valueOf(p.getAttribute(Entity.STATUS)));
+		return entityHelper.getPolicies().stream().filter(p -> pattern.matcher(p.getID()).find() && p.hasAttribute(Entity.STATUS)
+				&& (active ? p.getAttribute(Entity.STATUS).equals(Entity.STATUS_ACTIVE) : p.getAttribute(Entity.STATUS).equals(Entity.STATUS_INACTIVE)));
 	}
 
 	public HashMap<String, Long> stats() {

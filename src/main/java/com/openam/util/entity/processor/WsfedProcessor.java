@@ -161,7 +161,7 @@ public class WsfedProcessor {
 		final var tokenIssuerEndpoints = (NodeList) xPath.compile("//*[local-name() = 'TokenIssuerEndpoint']/*[local-name() = 'Address']").evaluate(xmlMetadata, XPathConstants.NODESET);
 		final var redirectUrls = IntStream.range(0, tokenIssuerEndpoints.getLength()).mapToObj(tokenIssuerEndpoints::item).map(Node::getTextContent).collect(Collectors.toList());
 
-		wsfed.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).toList()));
+		wsfed.addAttribute(Entity.REDIRECT_URLS, Util.json(redirectUrls.stream().limit(200).collect(Collectors.toList())));
 
 		final var attributeMaps = (NodeList) xPath.compile("//SPSSOConfig/Attribute[@name='attributeMap']/Value/text()").evaluate(xmlEntityConfig, XPathConstants.NODESET);
 

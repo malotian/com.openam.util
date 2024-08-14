@@ -14,7 +14,7 @@ public class Policy extends Entity {
 	public static Pattern patternInternalCERTPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal CERT", Pattern.CASE_INSENSITIVE);
 	public static Pattern patternInternalMFAPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal MFA|InternalUsersTrustedDevice", Pattern.CASE_INSENSITIVE);
 	public static Pattern patternInternalOnlyPolicies = Pattern.compile("Internal_Only_Restriction|Internal_only", Pattern.CASE_INSENSITIVE);
-	public static Pattern patternClientFedPolicies = Pattern.compile("PwCIDClientFed", Pattern.CASE_INSENSITIVE);
+	public static Pattern patternClientFedPolicies = Pattern.compile("PwCIDClientFed.*", Pattern.CASE_INSENSITIVE);
 	public static Pattern patternInternalNoFallbackTreePolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal_no_fallback Tree", Pattern.CASE_INSENSITIVE);
 	public static Pattern patternInternalTreePWDPolicies = Pattern.compile("SAML/WS-Fed/OAuth Internal Tree \\(PWD\\)", Pattern.CASE_INSENSITIVE);
 
