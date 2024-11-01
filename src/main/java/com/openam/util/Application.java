@@ -25,12 +25,13 @@ public class Application implements CommandLineRunner, Runnable {
 		app.run(args);
 	}
 
+
 	@Spec
 	CommandSpec spec;
 
 	@Override
 	public void run() {
-		throw new ParameterException(spec.commandLine(), "Missing required subcommand");
+		throw new ParameterException(spec.commandLine(), "Missing required sub-command");
 	}
 
 	@Override
